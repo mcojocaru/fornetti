@@ -10,8 +10,13 @@
 """,
     'website': '',
     'depends': ['sale_stock'],
-    'data': ['views/main.xml',
-             'views/profiles.xml',
-             'data/data.xml',
-             ''],
+    'data': [
+        'security/ir.model.access.csv',
+        'wizard/sale_order_wizard.xml',
+        'views/profiles.xml',
+        'views/main.xml',
+        'data/data.xml',
+        ],
+    'installable': True,
+    'auto_install': False,
 }

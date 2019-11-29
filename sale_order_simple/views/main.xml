@@ -27,8 +27,8 @@
   
   <menuitem id="menu_fornetti_admin_configs"
 	      name="Profile Utilizatori"
-	      parent="fornetti_root_admin"
+	      parent="menu_fornetti_admin"
 	      sequence="40"
-	      action="sale_order_simple.action_user_profile"/>
+	      action="sale_order_simple.action_user_profile1"/>
 
 </odoo>

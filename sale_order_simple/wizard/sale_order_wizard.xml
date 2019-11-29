@@ -11,13 +11,6 @@
       <field name="target">new</field>
     </record>
 
-    <record model="ir.actions.act_window.view" id="sale_order_wizard_view_form_view">
-      <field name="name">Vanzare Produse</field>
-      <field name="view_mode">form</field>
-      <field name="view_id" ref="action_sale_order_wizard_form"/>
-      <field name="act_window_id" ref="action_sale_order_wizard"/>
-    </record>
-
     <!--  -->
     <record id="action_sale_order_wizard_form" model="ir.ui.view">
       <field name="name">Vanzare Produse</field>
@@ -28,30 +21,46 @@
 	    <group>
 	      <field name="user_id" invisible="1"/>
 	      <field name="profile_id" invisible="1"/>
+	      <field name="order_id" invisible="1"/>
+	      <field name="partner_id" invisible="1"/>
+	      <field name="pricelist_id" invisible="1"/>
+	      <field name="company_id" invisible="1"/>
+	      <field name="currency_id" invisible="1"/>
+	      <field name="state" invisible="1"/>
 	    </group>
 	    <group>
 	    </group>
 	  </group>
 
+	  <field name="wiz_line" Dstring="Produse">
+	    <tree editable="top" create="false" >
+              <field name="currency_id" invisible="1"/>
+              <field name="product_id" options="{'no_open': True}" readonly="1"/>
+              <field name="product_uom_qty" />
+              <field name="price_unit" readonly="1"/>
+              <field name="product_uom" readonly="1" options='{"no_open": True}'/>
+              <field name="price_total" widget="monetary"/>
+              <field name="price_subtotal" widget="monetary" invisible="1"/>
+              <field name="price_tax" widget="monetary" invisible="1"/>
+	    </tree>
+	  </field>
 	  <group>
-	    <group>
-	      <field name="line_ids" string="Produse">
-		<tree>
-		  <field name="product_id" string='Produs'/>
-		  <field name="product_uom_id" string='Unit. Masura' readonly="1"/>
-		  <field name="product_qty" string='Cantitate'/>
-		</tree>
-	      </field>
-	    </group>
-	    <group>
-	    </group>
+	    <field name="amount_untaxed"/>
+	    <field name="amount_tax"/>
+	    <field name="amount_total"/>
 	  </group>
-
 	  <footer>
 	    <button name="confirm" string="Valideaza" class="oe_stat_button" type="object" />
 	  </footer>
 	</form>
       </field>
     </record>
+    <record model="ir.actions.act_window.view" id="sale_order_wizard_view_form_view">
+      <field name="name">Vanzare Produse</field>
+      <field name="view_mode">form</field>
+      <field name="view_id" ref="action_sale_order_wizard_form"/>
+      <field name="act_window_id" ref="action_sale_order_wizard"/>
+    </record>
+
   </data>
 </openerp>

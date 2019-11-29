@@ -17,7 +17,7 @@ class ProfileProducts(models.Model):
     _name = 'sale_order_simple.profile_products'
 
     product_id = fields.Many2one('product.product', string='Product')
-    profile_id = fields.Many2one('sale_order_simple.user_profile'
+    profile_id = fields.Many2one('sale_order_simple.user_profile', string="Profile")
 
 
 class ResUsers(models.Model):
