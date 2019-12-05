@@ -64,6 +64,7 @@ class SaleOrderWizard(models.Model):
                     'order_line_id': so_line.id,
                     'product_id': so_line.product_id.id,
                     'product_uom': so_line.product_uom.id,
+                    'product_uom_qty': 0,
                     'price_unit': so_line.price_unit
                 }
                 lines.append((0, 0, wiz_line))
@@ -73,7 +74,17 @@ class SaleOrderWizard(models.Model):
 
     @api.multi
     def confirm(self):
-        pass
+        for wizl in self.wiz_line:
+            wizl.order_line_id.product_uom_qty = wizl.product_uom_qty
+        self.order_id.action_confirm()
+        for pick in self.order_id.picking_ids:
+            wiz = self.env['stock.immediate.transfer'].create({'pick_ids': [(4, pick.id)]})
+            wiz.process()
+
+    @api.multi
+    def cancel(self):
+        self.order_id.unlink()
+
 
 class SaleOrderWizardLine(models.Model):
     _name = 'sale_order_simple.wizard_line'

@@ -45,12 +45,11 @@
 	    </tree>
 	  </field>
 	  <group>
-	    <field name="amount_untaxed"/>
-	    <field name="amount_tax"/>
 	    <field name="amount_total"/>
 	  </group>
 	  <footer>
 	    <button name="confirm" string="Valideaza" class="oe_stat_button" type="object" />
+	    <button name="cancel" string="Anuleaza" class="oe_stat_button" type="object" />
 	  </footer>
 	</form>
       </field>
