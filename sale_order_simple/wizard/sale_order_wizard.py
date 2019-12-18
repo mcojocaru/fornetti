@@ -9,20 +9,20 @@ from odoo.addons import decimal_precision as dp
 class SaleOrderWizard(models.Model):
     _name = 'sale_order_simple.wizard'
 
-    user_id = fields.Many2one('res.users', string='User')
-    profile_id = fields.Many2one('sale_order_simple.user_profile', string='Profile')
+    user_id = fields.Many2one('res.users', string='User', default=None)
+    profile_id = fields.Many2one('sale_order_simple.user_profile', string='Profile', default=None)
 
-    order_id = fields.Many2one('sale.order', string="Sale Order")
-    partner_id = fields.Many2one(related='order_id.partner_id')
-    pricelist_id = fields.Many2one(related="order_id.pricelist_id")
-    company_id = fields.Many2one(related="order_id.company_id")
-    state = fields.Selection(related="order_id.state")
-    wiz_line = fields.One2many('sale_order_simple.wizard_line', 'wizard_id', string="Product List")
-    currency_id = fields.Many2one(related='order_id.currency_id', string='Currency', readonly=True)
+    order_id = fields.Many2one('sale.order', string="Sale Order", default=None)
+    partner_id = fields.Many2one(related='order_id.partner_id', default=None)
+    pricelist_id = fields.Many2one(related="order_id.pricelist_id", default=None)
+    company_id = fields.Many2one(related="order_id.company_id", default=None)
+    state = fields.Selection(related="order_id.state", default=None)
+    wiz_line = fields.One2many('sale_order_simple.wizard_line', 'wizard_id', string="Product List", default=None)
+    currency_id = fields.Many2one(related='order_id.currency_id', string='Currency', readonly=True, default=None)
 
-    amount_untaxed = fields.Monetary(string="Amount Untaxed", compute="_compute_amount_all")
-    amount_tax = fields.Monetary(string="Amount Tax", compute="_compute_amount_all")
-    amount_total = fields.Monetary(string="Amount Total", compute="_compute_amount_all")
+    amount_untaxed = fields.Monetary(string="Amount Untaxed", compute="_compute_amount_all", default=0)
+    amount_tax = fields.Monetary(string="Amount Tax", compute="_compute_amount_all", default=0)
+    amount_total = fields.Monetary(string="Amount Total", compute="_compute_amount_all", default=0)
 
     @api.depends('wiz_line.price_total')
     def _compute_amount_all(self):
@@ -34,6 +34,8 @@ class SaleOrderWizard(models.Model):
     @api.model
     def default_get(self, fields):
         res = super(SaleOrderWizard, self).default_get(fields)
+        if '__last_update' in fields:
+            return res
         res['user_id'] = self.env.user.id
         profile_id = self.env.user.profile_id
         if profile_id:
@@ -51,7 +53,7 @@ class SaleOrderWizard(models.Model):
             res['state'] = order_id.state
             
             lines = []
-            for product_line in self.env.user.profile_id.product_ids:
+            for product_line in self.env.user.profile_id.product_ids.sorted(lambda l: l.sequence):
                 so_line = self.env['sale.order.line'].with_context(round=True).create(
                     {
                         'name': product_line.product_id.name,

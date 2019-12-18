@@ -16,6 +16,7 @@ class Profile(models.Model):
 class ProfileProducts(models.Model):
     _name = 'sale_order_simple.profile_products'
 
+    sequence = fields.Integer('Sequence', default=1, help="Gives the sequence order when displaying.")
     product_id = fields.Many2one('product.product', string='Product')
     profile_id = fields.Many2one('sale_order_simple.user_profile', string="Profile")
 
