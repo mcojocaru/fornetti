@@ -9,14 +9,19 @@
     'description': """
 """,
     'website': '',
-    'depends': ['sale_stock'],
+    'depends': ['l10n_ro', 'sale_stock'],
     'data': [
         'security/ir.model.access.csv',
         'wizard/sale_order_wizard.xml',
         'views/profiles.xml',
         'views/main.xml',
+        'views/res_config_settings_views.xml',
+        'views/templates.xml',
         'data/data.xml',
         ],
-    'installable': True,
+    'qweb': [
+        "static/src/js/xml/react_tmpl.xml",
+    ],
+        'installable': True,
     'auto_install': False,
 }

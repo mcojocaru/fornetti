@@ -1,65 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
-  <data>
+    <data>
 
-    <record id="action_sale_order_wizard" model="ir.actions.act_window">
-      <field name="name">Vanzare Produse</field>
-      <field name="type">ir.actions.act_window</field>
-      <field name="res_model">sale_order_simple.wizard</field>
-      <field name="view_type">form</field>
-      <field name="view_mode">form</field>
-      <field name="target">new</field>
-    </record>
+        <record model="ir.actions.server" id="action_server_sale_order_wizard">
+            <field name="name">Vanzare Produse</field>
+            <field name="model_id" ref="sale_order_simple.model_sale_order_simple_wizard"/>
+            <field name="binding_model_id" ref="sale_order_simple.model_sale_order_simple_wizard" />
+            <field name="binding_view_types">form</field>
+            <field name="state">code</field>
+            <field name="code">action = model.create_wizard()</field>
+        </record>
 
-    <!--  -->
-    <record id="action_sale_order_wizard_form" model="ir.ui.view">
-      <field name="name">Vanzare Produse</field>
-      <field name="model">sale_order_simple.wizard</field>
-      <field name="arch" type="xml">
-	<form string="Produse">
-	  <group>
-	    <group>
-	      <field name="user_id" invisible="1"/>
-	      <field name="profile_id" invisible="1"/>
-	      <field name="order_id" invisible="1"/>
-	      <field name="partner_id" invisible="1"/>
-	      <field name="pricelist_id" invisible="1"/>
-	      <field name="company_id" invisible="1"/>
-	      <field name="currency_id" invisible="1"/>
-	      <field name="state" invisible="1"/>
-	    </group>
-	    <group>
-	    </group>
-	  </group>
+        <record id="action_sale_order_wizard" model="ir.actions.act_window">
+            <field name="name">Vanzare Produse</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">sale_order_simple.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
 
-	  <field name="wiz_line" Dstring="Produse" widget="one2many" mode="tree">
-	    <tree editable="top" create="false">
-              <field name="currency_id" invisible="1"/>
-              <field name="product_id" options="{'no_open': True}" readonly="1" string="Produs"/>
-              <field name="product_uom_qty" string="Cantitate"/>
-              <field name="price_unit" readonly="1" string="Pret Unitar"/>
-              <field name="product_uom" readonly="1" options='{"no_open": True}' string="UM"/>
-              <field name="price_total" widget="monetary" string="Subtotal"/>
-              <field name="price_subtotal" widget="monetary" invisible="1"/>
-              <field name="price_tax" widget="monetary" invisible="1"/>
-	    </tree>
-	  </field>
-	  <group>
-	    <field name="amount_total" string="Pret Total"/>
-	  </group>
-	  <footer>
-	    <button name="confirm" string="Valideaza" class="oe_stat_button" type="object" />
-	    <button name="cancel" string="Anuleaza" class="oe_stat_button" type="object" />
-	  </footer>
-	</form>
-      </field>
-    </record>
-    <record model="ir.actions.act_window.view" id="sale_order_wizard_view_form_view">
-      <field name="name">Vanzare Produse</field>
-      <field name="view_mode">form</field>
-      <field name="view_id" ref="action_sale_order_wizard_form"/>
-      <field name="act_window_id" ref="action_sale_order_wizard"/>
-    </record>
+        <!--  -->
+        <record id="action_sale_order_wizard_form" model="ir.ui.view">
+            <field name="name">Vanzare Produse</field>
+            <field name="model">sale_order_simple.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Produse">
+                    <group>
+                        <group>
+                            <field name="amount_prev_day" string="Marfa Coapta ziua anterioara"/>
+                            <field name="user_id" invisible="1"/>
+                            <field name="profile_id" invisible="1"/>
+                            <field name="order_id" invisible="1"/>
+                            <field name="partner_id" invisible="1"/>
+                            <field name="pricelist_id" invisible="1"/>
+                            <field name="company_id" invisible="1"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="state" invisible="1"/>
+                        </group>
+                        <group>
+                        </group>
+                    </group>
 
-  </data>
+                    <field name="lines_json1" invisible="1"/>
+                    <field name="lines_json2" widget="react_one2many_field"/>
+                    <group>
+                        <field name="amount_total" string="Pret Total"/>
+                    </group>
+                    <footer>
+                        <button name="confirm" string="Valideaza" class="btn btn-secondary" type="object"/>
+                        <button name="cancel" string="Anuleaza" class="btn btn-secondary" type="object"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+        <record model="ir.actions.act_window.view" id="sale_order_wizard_view_form_view">
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="action_sale_order_wizard_form"/>
+            <field name="act_window_id" ref="action_sale_order_wizard"/>
+        </record>
+
+    </data>
 </openerp>

@@ -1,65 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
-  <data>
+    <data>
 
-    <!--  -->
-    <record id="user_profile_tree_view" model="ir.ui.view">
-      <field name="name">Profile Utilizatori</field>
-      <field name="model">sale_order_simple.user_profile</field>
-      <field name="arch" type="xml">
-	<tree string="Profile">
-	  <field name="name"/>
-	  <field name="user_id"/>
-	  <field name="so_partner_id"/>
-	  <field name="warehouse_id"/>
-	</tree>
-      </field>
-    </record>
+        <!--  -->
+        <record id="user_profile_tree_view" model="ir.ui.view">
+            <field name="name">Profile Utilizatori</field>
+            <field name="model">sale_order_simple.user_profile</field>
+            <field name="arch" type="xml">
+                <tree string="Profile">
+                    <field name="name"/>
+                    <field name="user_id"/>
+                    <field name="so_partner_id"/>
+                    <field name="warehouse_id"/>
+                </tree>
+            </field>
+        </record>
 
-    <!--  -->
-    <record id="user_profile_form_view" model="ir.ui.view">
-      <field name="name">Profil Utilizator</field>
-      <field name="model">sale_order_simple.user_profile</field>
-      <field name="arch" type="xml">
-    	<form string="Produse">
-    	  <group>
-    	    <group>
-    	      <field name="name"/>
-    	      <field name="user_id"/>
-    	    </group>
-    	    <group>
-    	      <field name="so_partner_id"/>
-    	      <field name="warehouse_id"/>
-    	    </group>
-    	  </group>
+        <!--  -->
+        <record id="user_profile_form_view" model="ir.ui.view">
+            <field name="name">Profil Utilizator</field>
+            <field name="model">sale_order_simple.user_profile</field>
+            <field name="arch" type="xml">
+                <form string="Produse">
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="user_id"/>
+                        </group>
+                        <group>
+                            <field name="so_partner_id"/>
+                            <field name="warehouse_id"/>
+                        </group>
+                    </group>
 
-    	  <group>
-    	    <group>
-    	      <field name="product_ids" string="Produse">
-    		<tree>
-		  <field name="sequence" widget="handle"/>
-    		  <field name="product_id" string='Produs'/>
-    		</tree>
-    	      </field>
-    	    </group>
-    	    <group>
-    	    </group>
-    	  </group>
-    	</form>
-      </field>
-    </record>
+                    <group>
+                        <group>
+                            <field name="product_ids" string="Produse">
+                                <tree>
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="product_id" string='Produs'/>
+                                </tree>
+                            </field>
+                        </group>
+                        <group>
+                        </group>
+                    </group>
+                </form>
+            </field>
+        </record>
 
 
-    <record id="action_user_profile1" model="ir.actions.act_window">
-      <field name="name">Profile Utilizatori</field>
-      <field name="type">ir.actions.act_window</field>
-      <field name="res_model">sale_order_simple.user_profile</field>
-      <field name="view_type">form</field>
-      <field name="view_mode">tree,form</field>
-      <field name="view_ids" eval="[(5, 0, 0),
+        <record id="action_user_profile1" model="ir.actions.act_window">
+            <field name="name">Profile Utilizatori</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">sale_order_simple.user_profile</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_ids" eval="[(5, 0, 0),
                 (0, 0, {'view_mode': 'tree', 'view_id': ref('user_profile_tree_view')}),
                 (0, 0, {'view_mode': 'form', 'view_id': ref('user_profile_form_view')})]"/>
-    </record>
+        </record>
 
-  </data>
+    </data>
 </openerp>

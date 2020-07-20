@@ -18,7 +18,7 @@
 	      name="Adauga Vanzare"
 	      parent="fornetti_root"
 	      sequence="20"
-	      action="sale_order_simple.action_sale_order_wizard"/>
+	      action="sale_order_simple.action_server_sale_order_wizard"/>
 
   <menuitem id="menu_fornetti_admin"
 	    name="Administrare"

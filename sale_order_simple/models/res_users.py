@@ -26,7 +26,6 @@ class ResUsers(models.Model):
 
     profile_id = fields.Many2one('sale_order_simple.user_profile', string='Profile', compute='_compute_profile')
 
-    @api.multi
     def _compute_profile(self):
         for user in self:
             user.profile_id = self.env['sale_order_simple.user_profile'].search([('user_id', '=', user.id)])

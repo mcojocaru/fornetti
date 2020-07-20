@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+
+<t t-name="ReactTmpl">
+    <div class="react_one2many_field">
+        <div class="o_field_value" style="display: none;"/>
+        <div id="react_root"/>
+    </div>
+</t>
+</templates>

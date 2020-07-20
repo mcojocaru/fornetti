@@ -6,5 +6,76 @@
             <field name="name">FORNETTI USER</field>
         </record>
 
+        <record id="product_category_subtotal" model="product.category">
+            <field name="parent_id" ref="product.product_category_1"/>
+            <field name="name">Subtotal</field>
+        </record>
+
+        <record id="product_product_subtotal_1" model="product.product">
+            <field name="name">Subtotal 1</field>
+            <field name="standard_price">0</field>
+            <field name="list_price">0</field>
+            <field name="type">service</field>
+            <field name="uom_id" ref="uom.product_uom_unit"/>
+            <field name="uom_po_id" ref="uom.product_uom_unit"/>
+            <field name="categ_id" ref="product_category_subtotal"/>
+            <field name="taxes_id">[(6, 0, [])]</field>
+        </record>
+
+        <record id="product_product_subtotal_2" model="product.product">
+            <field name="name">Subtotal 2</field>
+            <field name="standard_price">0</field>
+            <field name="list_price">0</field>
+            <field name="type">service</field>
+            <field name="uom_id" ref="uom.product_uom_unit"/>
+            <field name="uom_po_id" ref="uom.product_uom_unit"/>
+            <field name="categ_id" ref="product_category_subtotal"/>
+            <field name="taxes_id">[(6, 0, [])]</field>
+        </record>
+
+        <record id="product_product_subtotal_3" model="product.product">
+            <field name="name">Subtotal 3</field>
+            <field name="standard_price">0</field>
+            <field name="list_price">0</field>
+            <field name="type">service</field>
+            <field name="uom_id" ref="uom.product_uom_unit"/>
+            <field name="uom_po_id" ref="uom.product_uom_unit"/>
+            <field name="categ_id" ref="product_category_subtotal"/>
+            <field name="taxes_id">[(6, 0, [])]</field>
+        </record>
+
+        <record id="product_product_subtotal_4" model="product.product">
+            <field name="name">Subtotal 4</field>
+            <field name="standard_price">0</field>
+            <field name="list_price">0</field>
+            <field name="type">service</field>
+            <field name="uom_id" ref="uom.product_uom_unit"/>
+            <field name="uom_po_id" ref="uom.product_uom_unit"/>
+            <field name="categ_id" ref="product_category_subtotal"/>
+            <field name="taxes_id">[(6, 0, [])]</field>
+        </record>
+
+        <record id="product_product_subtotal_5" model="product.product">
+            <field name="name">Subtotal 5</field>
+            <field name="standard_price">0</field>
+            <field name="list_price">0</field>
+            <field name="type">service</field>
+            <field name="uom_id" ref="uom.product_uom_unit"/>
+            <field name="uom_po_id" ref="uom.product_uom_unit"/>
+            <field name="categ_id" ref="product_category_subtotal"/>
+            <field name="taxes_id">[(6, 0, [])]</field>
+        </record>
+
+        <record id="product_product_subtotal_6" model="product.product">
+            <field name="name">Subtotal 6</field>
+            <field name="standard_price">0</field>
+            <field name="list_price">0</field>
+            <field name="type">service</field>
+            <field name="uom_id" ref="uom.product_uom_unit"/>
+            <field name="uom_po_id" ref="uom.product_uom_unit"/>
+            <field name="categ_id" ref="product_category_subtotal"/>
+            <field name="taxes_id">[(6, 0, [])]</field>
+        </record>
+
     </data>
 </openerp>

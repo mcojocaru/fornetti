@@ -1,0 +1,3 @@
+sale_order_simple/static/src/js/node_modules
+*.pyc
+*.*~
