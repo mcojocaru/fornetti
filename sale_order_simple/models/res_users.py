@@ -9,16 +9,25 @@ class Profile(models.Model):
     name = fields.Char('Name', required=True)
     user_id = fields.Many2one('res.users', string="User")
     so_partner_id = fields.Many2one('res.partner', string='Customer', required=True)
+    po_partner_id = fields.Many2one('res.partner', string='Supplier', required=True)
     warehouse_id = fields.Many2one('stock.warehouse', string='Warehouse', required=True)
-    product_ids = fields.One2many('sale_order_simple.profile_products', 'profile_id', string='Products', required=True)
+    sale_product_list_id = fields.Many2one('sale_order_simple.sale_product_list', string='Product List', required=True)
+    product_ids = fields.One2many(related='sale_product_list_id.product_ids', string="Products")
+
+class SaleProductList(models.Model):
+    _name = 'sale_order_simple.sale_product_list'
+
+    name = fields.Char('Name', default='', required=True)
+    product_ids = fields.One2many('sale_order_simple.product_list_item', 'sale_product_list_id', string="Profile", copy=True)
 
 
 class ProfileProducts(models.Model):
-    _name = 'sale_order_simple.profile_products'
+    _name = 'sale_order_simple.product_list_item'
 
+    sale_product_list_id = fields.Many2one('sale_order_simple.sale_product_list', string='Sale Product List',
+                                           required=True)
     sequence = fields.Integer('Sequence', default=1, help="Gives the sequence order when displaying.")
     product_id = fields.Many2one('product.product', string='Product')
-    profile_id = fields.Many2one('sale_order_simple.user_profile', string="Profile")
 
 
 class ResUsers(models.Model):

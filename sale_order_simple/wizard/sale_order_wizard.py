@@ -44,8 +44,7 @@ class SaleOrderWizard(models.Model):
         }
 
     @api.onchange('lines_json1')
-    def char1_inchange(self):
-        print(self.lines_json1)
+    def lines_json1_onchange(self):
         self.update_wiz_lines_from_json(self.lines_json1)
 
         def _wiz_line_data(wiz_line):
@@ -104,7 +103,6 @@ class SaleOrderWizard(models.Model):
 
     def update_all(self):
         lines = self.wiz_line.filtered(lambda wl: wl.is_section == False)
-        lines.update_sold_qty()
         lines.update_price_total()
 
         section_lines = self.wiz_line.filtered(lambda wl: wl.is_section == True)
@@ -146,7 +144,7 @@ class SaleOrderWizard(models.Model):
                     'wizard_id': wiz_id.id,
                     'order_line_id': so_line.id,
                     'product_id': so_line.product_id.id,
-                    'product_name': so_line.product_id.name,
+                    'product_name': so_line.name,
                     'free_qty': 0,
                     'product_uom': so_line.product_uom.id,
                     'product_uom_name': so_line.product_uom.name,
@@ -163,8 +161,20 @@ class SaleOrderWizard(models.Model):
         return lines
 
     def confirm(self):
-        for wizl in self.wiz_line:
-            wizl.order_line_id.product_uom_qty = wizl.free_qty - wizl.current_qty
+        for line in self.wiz_line:
+            qty = line.free_qty - line.current_qty
+            if qty > 0:
+                bom_id = self._create_bom(line)
+                unbild = self.env['mrp.unbuild'].create({
+                    'product_id': line.product_id.id,
+                    'product_uom_id': line.product_uom.id,
+                    'location_id': self.env.ref('stock.stock_location_stock').id,
+                    'location_dest_id': self.env.ref('stock.stock_location_stock').id,
+                    'bom_id': bom_id.id,
+                    'product_qty': qty
+                })
+                unbild.sudo().action_validate()
+
         self.order_id.action_confirm()
         for pick in self.order_id.picking_ids:
             wiz = self.env['stock.immediate.transfer'].create({'pick_ids': [(4, pick.id)]})
@@ -178,6 +188,34 @@ class SaleOrderWizard(models.Model):
             "type": "ir.actions.do_nothing",
         }
 
+    def _create_bom(self, line):
+        bom = {
+            'product_tmpl_id': line.product_id.product_tmpl_id.id,
+            'product_uom_id': line.product_uom.id,
+            'type': 'normal',
+            'product_qty': 1
+        }
+        bom_id = self.env['mrp.bom'].create(bom)
+        ratio = 1 - float(self.env['ir.config_parameter'].get_param('fornetti.product_loss_ratio'))
+        bom_line1 = {
+            'product_id': line.product_id.id,
+            'product_qty': ratio,
+            'product_uom_id': line.product_uom.id,
+            'bom_id': bom_id.id
+        }
+        self.env['mrp.bom.line'].create(bom_line1)
+        prod_loss = self.env.ref('sale_order_simple.product_fornetti_loss')
+        bom_line2 = {
+            'product_id': prod_loss.id,
+            'product_qty': 1 - ratio,
+            'product_uom_id': prod_loss.uom_id.id,
+            'bom_id': bom_id.id
+        }
+        self.env['mrp.bom.line'].create(bom_line2)
+
+        return bom_id
+
+
 class SaleOrderWizardLine(models.Model):
     _name = 'sale_order_simple.wizard_line'
 
@@ -190,7 +228,7 @@ class SaleOrderWizardLine(models.Model):
     product_name = fields.Char(related='product_id.name')
     free_qty = fields.Float(related='product_id.free_qty')
     current_qty = fields.Float(string="Product Qty", default=0.0)
-    sold_qty = fields.Float(string="Sold Qty")
+    sold_qty = fields.Float(string="Sold Qty", compute='update_sold_qty')
     product_uom = fields.Many2one(related="order_line_id.product_uom")
     product_uom_name = fields.Char(related="product_uom.name")
     price_unit = fields.Float(related='order_line_id.price_unit')
@@ -199,16 +237,18 @@ class SaleOrderWizardLine(models.Model):
     price_tax = fields.Monetary(string="Price Total")
     update_button = fields.Boolean('Update Button')
 
+    @api.depends('current_qty')
     def update_sold_qty(self):
+        ratio = 1 - float(self.env['ir.config_parameter'].get_param('fornetti.product_loss_ratio'))
         for line in self:
             if not line.is_section:
-                ratio = 1 - float(self.env['ir.config_parameter'].get_param('fornetti.product_loss_ratio'))
                 line.sold_qty = ratio * (line.free_qty - line.current_qty)
 
     def update_price_total(self):
         for line in self:
             if not line.is_section:
-                line.order_line_id.product_uom_qty = line.free_qty - line.current_qty
+                ratio = 1 - float(self.env['ir.config_parameter'].get_param('fornetti.product_loss_ratio'))
+                line.order_line_id.product_uom_qty = ratio * (line.free_qty - line.current_qty)
                 line.order_line_id._compute_amount()
                 line.price_total = line.order_line_id.price_total
                 line.price_subtotal = line.order_line_id.price_subtotal

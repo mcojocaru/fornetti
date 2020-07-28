@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data noupdate="1">
+
+        <record id="product_category_mini_sweet" model="product.category">
+            <field name="parent_id" ref="product.product_category_1"/>
+            <field name="name">Mini Dulci</field>
+        </record>
+
+        <record id="product_category_paper_bags" model="product.category">
+            <field name="parent_id" ref="product.product_category_1"/>
+            <field name="name">Pungi Hartie</field>
+        </record>
+
+        <record id="product_category_dessert" model="product.category">
+            <field name="parent_id" ref="product.product_category_1"/>
+            <field name="name">Desert</field>
+        </record>
+        <record id="product_category_mini_salted" model="product.category">
+            <field name="parent_id" ref="product.product_category_1"/>
+            <field name="name">Mini Sarate</field>
+        </record>
+        <record id="product_category_products_xxl" model="product.category">
+            <field name="parent_id" ref="product.product_category_1"/>
+            <field name="name">Produse XXL</field>
+        </record>
+        <record id="product_category_products_pizza_food" model="product.category">
+            <field name="parent_id" ref="product.product_category_1"/>
+            <field name="name">Produse Pizza si Food</field>
+        </record>
+        <record id="product_category_premium_prebacked" model="product.category">
+            <field name="parent_id" ref="product.product_category_1"/>
+            <field name="name">Produse Premium Precoapte</field>
+        </record>
+
+    </data>
+</openerp>

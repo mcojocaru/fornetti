@@ -102,10 +102,11 @@ odoo.define('sale_order_simple.widgets', function (require) {
                     value[index].current_qty = parseInt(qty);
 
                     //this will call onchange in the backend also
-                    _this2.odoo_field_json_lines1._setValue(JSON.stringify(value)).then(function () {
-                        _this2.odoo_field_json_lines1.value = JSON.stringify(_this2.state.value);
-                        _this2.odoo_field_json_lines1._renderEdit();
-                    });
+                    _this2.odoo_field_json_lines1._setValue(JSON.stringify(value));
+                    //                  .then(() => {
+                    //                      this.odoo_field_json_lines1.value = JSON.stringify(this.state.value);
+                    //                      this.odoo_field_json_lines1._renderEdit();
+                    //                  });
                 }
             };
 
@@ -127,15 +128,15 @@ odoo.define('sale_order_simple.widgets', function (require) {
 
                 var lines = this.state.value.map(function (line, index) {
                     if (!line.is_section) {
-                        return React.createElement(TableRow, { line: line, index: index, changed: _this3.valueChangedHandler.bind(_this3) });
+                        return React.createElement(TableRow, { key: line.id, line: line, index: index, changed: _this3.valueChangedHandler.bind(_this3) });
                     } else {
                         return React.createElement(
                             'tr',
-                            { className: 'table-primary' },
+                            { className: 'table-primary', key: line.id },
                             React.createElement(
                                 'td',
                                 null,
-                                'Subtotal'
+                                line.product_name
                             ),
                             React.createElement('td', null),
                             React.createElement(

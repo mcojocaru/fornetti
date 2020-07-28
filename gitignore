@@ -1,3 +1,5 @@
 sale_order_simple/static/src/js/node_modules
+sale_order_simple/static/src/js/node_modules/
 *.pyc
 *.*~
+sale_order_simple/__pycache__/*

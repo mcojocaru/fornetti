@@ -10,7 +10,8 @@
                 <tree string="Profile">
                     <field name="name"/>
                     <field name="user_id"/>
-                    <field name="so_partner_id"/>
+                    <field name="so_partner_id" context="{'res_partner_search_mode': 'customer'}"/>
+                    <field name="po_partner_id" context="{'res_partner_search_mode': 'supplier'}"/>
                     <field name="warehouse_id"/>
                 </tree>
             </field>
@@ -28,22 +29,17 @@
                             <field name="user_id"/>
                         </group>
                         <group>
-                            <field name="so_partner_id"/>
+                            <field name="so_partner_id" context="{'res_partner_search_mode': 'customer'}"/>
+                            <field name="po_partner_id" context="{'res_partner_search_mode': 'supplier'}"/>
                             <field name="warehouse_id"/>
                         </group>
                     </group>
 
                     <group>
                         <group>
-                            <field name="product_ids" string="Produse">
-                                <tree>
-                                    <field name="sequence" widget="handle"/>
-                                    <field name="product_id" string='Produs'/>
-                                </tree>
-                            </field>
+                            <field name="sale_product_list_id"/>
                         </group>
-                        <group>
-                        </group>
+                        <group></group>
                     </group>
                 </form>
             </field>

@@ -7,28 +7,35 @@
 
 <odoo>
 
-  <menuitem id="fornetti_root"
-	      name="Fornetti"
-	      icon="fa-wrench"
-	      web_icon="mrp,static/description/icon.png"
-	      sequence="10"/>
-  <!--  -->
+    <menuitem id="fornetti_root"
+              name="Fornetti"
+              icon="fa-wrench"
+              web_icon="mrp,static/description/icon.png"
+              sequence="10"/>
+    <!--  -->
 
-  <menuitem id="menu_fornetti_1"
-	      name="Adauga Vanzare"
-	      parent="fornetti_root"
-	      sequence="20"
-	      action="sale_order_simple.action_server_sale_order_wizard"/>
+    <menuitem id="menu_fornetti_1"
+              name="Adauga Vanzare"
+              parent="fornetti_root"
+              sequence="20"
+              action="sale_order_simple.action_server_sale_order_wizard"/>
 
-  <menuitem id="menu_fornetti_admin"
-	    name="Administrare"
-	    parent="fornetti_root"
-	    sequence="30"/>
-  
-  <menuitem id="menu_fornetti_admin_configs"
-	      name="Profile Utilizatori"
-	      parent="menu_fornetti_admin"
-	      sequence="40"
-	      action="sale_order_simple.action_user_profile1"/>
+    <menuitem id="menu_fornetti_admin"
+              name="Administrare"
+              parent="fornetti_root"
+              sequence="30"/>
+
+
+    <menuitem id="menu_fornetti_admin_product_lists"
+              name="Liste Produse"
+              parent="menu_fornetti_admin"
+              sequence="40"
+              action="sale_order_simple.action_sale_product_list"/>
+
+    <menuitem id="menu_fornetti_admin_configs"
+              name="Profile Utilizatori"
+              parent="menu_fornetti_admin"
+              sequence="50"
+              action="sale_order_simple.action_user_profile1"/>
 
 </odoo>

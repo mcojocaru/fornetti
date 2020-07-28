@@ -56,10 +56,11 @@ odoo.define('sale_order_simple.widgets', function (require) {
                   value[index].current_qty = parseInt(qty);
 
                   //this will call onchange in the backend also
-                  this.odoo_field_json_lines1._setValue(JSON.stringify(value)).then(() => {
-                      this.odoo_field_json_lines1.value = JSON.stringify(this.state.value);
-                      this.odoo_field_json_lines1._renderEdit();
-                  });
+                  this.odoo_field_json_lines1._setValue(JSON.stringify(value));
+//                  .then(() => {
+//                      this.odoo_field_json_lines1.value = JSON.stringify(this.state.value);
+//                      this.odoo_field_json_lines1._renderEdit();
+//                  });
               }
           }
 
@@ -70,11 +71,11 @@ odoo.define('sale_order_simple.widgets', function (require) {
           render() {
               const lines = this.state.value.map((line, index) => {
                   if (!line.is_section) {
-                      return <TableRow line={line} index={index} changed={this.valueChangedHandler.bind(this)}/>;
+                      return <TableRow key={line.id} line={line} index={index} changed={this.valueChangedHandler.bind(this)}/>;
                   } else {
                       return (
-                        <tr className="table-primary">
-                            <td>Subtotal</td>
+                        <tr className="table-primary" key={line.id}>
+                            <td>{line.product_name}</td>
                             <td></td>
                             <td>{line.current_qty}</td>
                             <td>{line.sold_qty}</td>

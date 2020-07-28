@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <!--  -->
+        <record id="sale_product_list_tree_view" model="ir.ui.view">
+            <field name="name">Liste Produse Vanzare</field>
+            <field name="model">sale_order_simple.sale_product_list</field>
+            <field name="arch" type="xml">
+                <tree string="Profile">
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+
+        <!--  -->
+        <record id="sale_product_list_form_view" model="ir.ui.view">
+            <field name="name">Lista Produse Vanzare</field>
+            <field name="model">sale_order_simple.sale_product_list</field>
+            <field name="arch" type="xml">
+                <form string="Produse">
+                    <group>
+                        <group>
+                            <field name="name"/>
+                        </group>
+                        <group></group>
+                    </group>
+
+                    <group>
+                        <group>
+                            <field name="product_ids" string="Produse">
+                                <tree editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="product_id" string='Produs'/>
+                                </tree>
+                            </field>
+                        </group>
+                        <group></group>
+                    </group>
+                </form>
+            </field>
+        </record>
+
+
+        <record id="action_sale_product_list" model="ir.actions.act_window">
+            <field name="name">Lista Produse Vanzare</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">sale_order_simple.sale_product_list</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_ids" eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('sale_product_list_tree_view')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('sale_product_list_form_view')})]"/>
+        </record>
+
+    </data>
+</openerp>
