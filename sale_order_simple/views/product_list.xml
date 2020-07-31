@@ -9,6 +9,7 @@
             <field name="arch" type="xml">
                 <tree string="Profile">
                     <field name="name"/>
+                    <field name="type"/>
                 </tree>
             </field>
         </record>
@@ -23,7 +24,9 @@
                         <group>
                             <field name="name"/>
                         </group>
-                        <group></group>
+                        <group>
+                            <field name="type"/>
+                        </group>
                     </group>
 
                     <group>

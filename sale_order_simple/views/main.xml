@@ -14,11 +14,23 @@
               sequence="10"/>
     <!--  -->
 
+<!--    <menuitem id="menu_fornetti_1"-->
+<!--              name="Selectie"-->
+<!--              parent="fornetti_root"-->
+<!--              sequence="15"-->
+<!--              action="sale_order_simple.action_server_selection_order_wizard"/>-->
+
     <menuitem id="menu_fornetti_1"
               name="Adauga Vanzare"
               parent="fornetti_root"
               sequence="20"
               action="sale_order_simple.action_server_sale_order_wizard"/>
+
+    <menuitem id="menu_fornetti_2"
+              name="Adauga Intrare"
+              parent="fornetti_root"
+              sequence="25"
+              action="sale_order_simple.action_server_purchase_order_wizard"/>
 
     <menuitem id="menu_fornetti_admin"
               name="Administrare"

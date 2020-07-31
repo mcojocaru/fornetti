@@ -5,6 +5,7 @@
             <script src="https://unpkg.com/react@16/umd/react.production.min.js" crossorigin="1"/>
             <script src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js" crossorigin="1"/>
             <script type="module" src="/sale_order_simple/static/src/js/react_one2many_field.js"></script>
+            <script type="module" src="/sale_order_simple/static/src/js/react_one2many_field_purchase.js"></script>
         </xpath>
     </template>
 </odoo>

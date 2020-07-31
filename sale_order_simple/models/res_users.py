@@ -11,13 +11,15 @@ class Profile(models.Model):
     so_partner_id = fields.Many2one('res.partner', string='Customer', required=True)
     po_partner_id = fields.Many2one('res.partner', string='Supplier', required=True)
     warehouse_id = fields.Many2one('stock.warehouse', string='Warehouse', required=True)
-    sale_product_list_id = fields.Many2one('sale_order_simple.sale_product_list', string='Product List', required=True)
+    sale_product_list_id = fields.Many2one('sale_order_simple.sale_product_list', string='Sale Product List', required=True)
+    purchase_product_list_id = fields.Many2one('sale_order_simple.sale_product_list', string='Purchase Product List', required=True)
     product_ids = fields.One2many(related='sale_product_list_id.product_ids', string="Products")
 
 class SaleProductList(models.Model):
     _name = 'sale_order_simple.sale_product_list'
 
     name = fields.Char('Name', default='', required=True)
+    type = fields.Selection(string="Type", selection=[('sale', 'Vanzare'), ('purchase', 'Intrare')], default='sale')
     product_ids = fields.One2many('sale_order_simple.product_list_item', 'sale_product_list_id', string="Profile", copy=True)
 
 
