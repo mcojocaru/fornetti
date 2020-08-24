@@ -51,7 +51,7 @@ odoo.define('sale_order_simple.purchase_widgets', function (require) {
               const qty = event.target.value;
               const value = this.state.value;
               if (qty !== "") {
-                  value[index].current_qty = parseInt(qty);
+                  value[index].current_qty = parseFloat(qty);
 
                   //this will call onchange in the backend also
                   this.odoo_field_json_lines1._setValue(JSON.stringify(value));

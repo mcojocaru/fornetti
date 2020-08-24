@@ -34,9 +34,10 @@ odoo.define('sale_order_simple.widgets', function (require) {
                         <td>{this.props.line.free_qty}</td>
                         <td><input type="text" value={this.state.qty} onChange={this.valueChangedHandler.bind(this)}/></td>
                         <td>{this.props.line.sold_qty}</td>
+                        <td>{this.props.line.is_section? this.props.line.sold_qty_adjusted: ''}</td>
                         <td>{this.props.line.price_unit}</td>
                         <td>{this.props.line.product_uom_name}</td>
-                        <td>{this.props.line.price_total}</td>
+                        <td>{this.props.line.is_section? this.props.line.price_total: ''}</td>
                      </tr>
           }
         }
@@ -53,7 +54,7 @@ odoo.define('sale_order_simple.widgets', function (require) {
               const qty = event.target.value;
               const value = this.state.value;
               if (qty !== "") {
-                  value[index].current_qty = parseInt(qty);
+                  value[index].current_qty = parseFloat(qty);
 
                   //this will call onchange in the backend also
                   this.odoo_field_json_lines1._setValue(JSON.stringify(value));
@@ -79,6 +80,7 @@ odoo.define('sale_order_simple.widgets', function (require) {
                             <td></td>
                             <td>{line.current_qty}</td>
                             <td>{line.sold_qty}</td>
+                            <td>{line.sold_qty_adjusted}</td>
                             <td></td>
                             <td></td>
                             <td>{line.price_total}</td>
@@ -94,7 +96,8 @@ odoo.define('sale_order_simple.widgets', function (require) {
                     <th>Produs</th>
                     <th>Cantitate Initiala</th>
                     <th>Cantitate Ramasa</th>
-                    <th>Cantitate Vanduta</th>
+                    <th>Cantitate Vanduta (fara pierderi)</th>
+                    <th>Cantitate Vanduta (cu pierderi)</th>
                     <th>Pret Unitar</th>
                     <th>UM</th>
                     <th>Total</th>

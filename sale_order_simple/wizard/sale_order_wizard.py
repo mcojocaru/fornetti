@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import api, fields, models, _
+from odoo import api, fields, models, tools, _
 import json
 
+def round(amount):
+    return tools.float_round(amount, precision_digits=2)
 
 class SaleOrderWizard(models.Model):
     _name = 'sale_order_simple.wizard'
@@ -19,18 +21,28 @@ class SaleOrderWizard(models.Model):
     company_id = fields.Many2one(related="order_id.company_id", default=None)
     state = fields.Selection(related="order_id.state", default=None)
     amount_prev_day = fields.Float(string='Amount Previous Day', default = 0.0)
+    current_cash_amount = fields.Float('Current Cash Amount', related='user_id.current_cash_amount', readonly=True)
     wiz_line = fields.One2many('sale_order_simple.wizard_line', 'wizard_id', string="Product List", default=None)
     currency_id = fields.Many2one(related='order_id.currency_id', string='Currency', readonly=True, default=None)
+
+    wiz_line_expenses = fields.One2many('sale_order_simple.wizard_line_expense', 'wizard_id', string="Expense List", default=None)
 
     amount_untaxed = fields.Monetary(string="Amount Untaxed", compute="_compute_amount_all", default=0)
     amount_tax = fields.Monetary(string="Amount Tax", compute="_compute_amount_all", default=0)
     amount_total = fields.Monetary(string="Amount Total", compute="_compute_amount_all", default=0)
+
+    @api.depends('wiz_line.price_subtotal', 'wiz_line_expenses.price_total', 'amount_prev_day')
+    def _compute_amount_all(self):
+        self.order_id._amount_all()
+        self.amount_total = self.current_cash_amount + self.order_id.amount_total + self.amount_prev_day
 
     @api.model
     def create_wizard(self):
         res_id = self.create({})
         lines = self.create_wiz_lines(res_id)
         res_id.lines_json1 = res_id.lines_json2 = json.dumps(lines)
+
+        exp_lines = self.create_wiz_expense_lines(res_id)
 
         form_view = self.env.ref('sale_order_simple.action_sale_order_wizard_form')
         return {
@@ -52,24 +64,18 @@ class SaleOrderWizard(models.Model):
                 'product_id': wiz_line.product_id.id,
                 'product_name': wiz_line.order_line_id.name,
                 'free_qty': wiz_line.product_id.free_qty,
-                'sold_qty': wiz_line.sold_qty,
+                'sold_qty': round(wiz_line.sold_qty),
+                'sold_qty_adjusted': round(wiz_line.sold_qty_adjusted),
                 'product_uom': wiz_line.product_uom.id,
                 'product_uom_name': wiz_line.product_uom.name,
                 'current_qty': wiz_line.current_qty,
                 'price_unit': wiz_line.price_unit,
                 'is_section': wiz_line.is_section,
-                'price_total': wiz_line.price_total,
-                'price_subtotal': wiz_line.price_subtotal,
+                'price_total': round(wiz_line.price_total),
+                'price_subtotal': round(wiz_line.price_subtotal),
                 'subtotal_order_lines': [(6, 0, wiz_line.subtotal_order_lines.ids)],
             }
         self.lines_json2 = json.dumps([_wiz_line_data(line) for line in self.wiz_line])
-
-    @api.depends('wiz_line.price_subtotal', 'wiz_line.price_tax', 'amount_prev_day')
-    def _compute_amount_all(self):
-        for obj in self:
-            obj.amount_untaxed = sum([l.price_subtotal for l in obj.wiz_line.filtered(lambda wl: wl.is_section == False)])
-            obj.amount_tax = sum([l.price_tax for l in obj.wiz_line.filtered(lambda wl: wl.is_section == False)])
-            obj.amount_total = obj.amount_untaxed + obj.amount_tax + obj.amount_prev_day
 
     @api.model
     def default_get(self, fields):
@@ -107,6 +113,29 @@ class SaleOrderWizard(models.Model):
         section_lines = self.wiz_line.filtered(lambda wl: wl.is_section == True)
         section_lines.update_section_line(lines)
 
+    def create_wiz_expense_lines(self, wiz_id):
+        lines = []
+        for product_line in self.env.user.profile_id.expense_product_ids.sorted(lambda l: l.sequence):
+            so_line = self.env['sale.order.line'].with_context(round=True).create(
+                {
+                    'name': product_line.product_id.name,
+                    'order_id': wiz_id.order_id.id,
+                    'product_id': product_line.product_id.id,
+                    'product_uom_qty': 1,
+                    'price_unit': 0,
+                })
+            so_line.product_id_change()
+            so_line.price_unit = 0
+            wiz_line = {
+                'wizard_id': wiz_id.id,
+                'order_line_id': so_line.id,
+                'product_id': so_line.product_id.id,
+                'currency_id': so_line.currency_id.id
+            }
+            self.env['sale_order_simple.wizard_line_expense'].create(wiz_line)
+            lines.append(wiz_line)
+        return lines
+
     def create_wiz_lines(self, wiz_id):
         lines = []
         subtotal_so_lines = []
@@ -131,6 +160,7 @@ class SaleOrderWizard(models.Model):
                     'product_name': so_line.product_id.name,
                     'free_qty': product_line.product_id.free_qty,
                     'sold_qty': 0,
+                    'sold_qty_adjusted': 0,
                     'product_uom': so_line.product_uom.id,
                     'product_uom_name': so_line.product_uom.name,
                     'current_qty': product_line.product_id.free_qty,
@@ -149,6 +179,7 @@ class SaleOrderWizard(models.Model):
                     'product_uom_name': so_line.product_uom.name,
                     'current_qty': current_qty_section,
                     'sold_qty': 0,
+                    'sold_qty_adjusted': 0,
                     'price_unit': 0,
                     'is_section': True,
                     'subtotal_order_lines': [(6, 0, subtotal_so_lines)]
@@ -162,7 +193,7 @@ class SaleOrderWizard(models.Model):
     def confirm(self):
         for line in self.wiz_line:
             qty = line.free_qty - line.current_qty
-            if qty > 0:
+            if line.product_uom != self.env.ref('uom.product_uom_unit') and qty > 0:
                 bom_id = self._create_bom(line)
                 unbild = self.env['mrp.unbuild'].create({
                     'product_id': line.product_id.id,
@@ -253,6 +284,7 @@ class SaleOrderWizardLine(models.Model):
     free_qty = fields.Float(related='product_id.free_qty')
     current_qty = fields.Float(string="Product Qty", default=0.0)
     sold_qty = fields.Float(string="Sold Qty", compute='update_sold_qty')
+    sold_qty_adjusted = fields.Float(string="Sold Qty Adjusted", compute='update_sold_qty')
     product_uom = fields.Many2one(related="order_line_id.product_uom")
     product_uom_name = fields.Char(related="product_uom.name")
     price_unit = fields.Float(related='order_line_id.price_unit')
@@ -264,24 +296,54 @@ class SaleOrderWizardLine(models.Model):
     def update_sold_qty(self):
         ratio = 1 - float(self.env['ir.config_parameter'].get_param('fornetti.product_loss_ratio'))
         for line in self:
-            if not line.is_section:
-                line.sold_qty =  line.currency_id.round(ratio * (line.free_qty - line.current_qty))
+            if not (line.is_section or line.product_uom == self.env.ref('uom.product_uom_unit')):
+                line.sold_qty_adjusted =  round(ratio * (line.free_qty - line.current_qty))
+            else:
+                line.sold_qty_adjusted = round(line.free_qty - line.current_qty)
+            line.sold_qty = line.currency_id.round(line.free_qty - line.current_qty)
 
     def update_price_total(self):
         for line in self:
             if not line.is_section:
                 ratio = 1 - float(self.env['ir.config_parameter'].get_param('fornetti.product_loss_ratio'))
-                line.order_line_id.product_uom_qty = ratio * (line.free_qty - line.current_qty)
+                if line.product_uom != self.env.ref('uom.product_uom_unit'):
+                    line.order_line_id.product_uom_qty = ratio * (line.free_qty - line.current_qty)
+                else:
+                    line.order_line_id.product_uom_qty = line.free_qty - line.current_qty
                 line.order_line_id._compute_amount()
-                line.price_total = line.currency_id.round(line.order_line_id.price_total)
-                line.price_subtotal = line.currency_id.round(line.order_line_id.price_subtotal)
-                line.price_tax = line.currency_id.round(line.order_line_id.price_tax)
+                line.price_total = round(line.order_line_id.price_total)
+                line.price_subtotal = round(line.order_line_id.price_subtotal)
+                line.price_tax = round(line.order_line_id.price_tax)
 
     def update_section_line(self, non_section_lines):
         for section_line in self:
             lines = non_section_lines.filtered(lambda wl: wl.order_line_id._origin in section_line.subtotal_order_lines._origin)
             section_line.current_qty = sum([l.current_qty for l in lines])
             section_line.sold_qty = sum([l.sold_qty for l in lines])
-            section_line.price_subtotal = sum([l.price_total for l in lines])
-            section_line.price_total = sum([l.price_total for l in lines])
-            section_line.price_tax = sum([l.price_tax for l in lines])
+            section_line.sold_qty_adjusted = round(sum([l.sold_qty_adjusted for l in lines]))
+            section_line.price_subtotal = round(sum([l.price_total for l in lines]))
+            section_line.price_total = round(sum([l.price_total for l in lines]))
+            section_line.price_tax = round(sum([l.price_tax for l in lines]))
+
+
+class SaleOrderWizardExpLine(models.Model):
+    _name = 'sale_order_simple.wizard_line_expense'
+
+    wizard_id = fields.Many2one('sale_order_simple.wizard', string="Wizard")
+    product_id = fields.Many2one('product.product', string='Prodduct')
+    order_line_id = fields.Many2one('sale.order.line', string="Sale Order Line")
+    currency_id = fields.Many2one(related='order_line_id.currency_id')
+    amount = fields.Float(string="Amount", default=0.0)
+
+    price_total = fields.Monetary(string="Price Total")
+    price_subtotal = fields.Monetary(string="Price Total")
+    price_tax = fields.Monetary(string="Price Total")
+
+    @api.onchange('amount')
+    def update_price_total(self):
+        for line in self:
+            line.order_line_id.write({'price_unit': -line.amount})
+            line.order_line_id._compute_amount()
+            line.price_total = line.order_line_id.price_total
+            line.price_subtotal = line.order_line_id.price_subtotal
+            line.price_tax = line.order_line_id.price_tax

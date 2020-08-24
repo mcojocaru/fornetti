@@ -190,13 +190,13 @@ class PurchaseOrderWizard(models.Model):
         else:
             domain = [('payment_type', '=', 'outbound')]
 
-        payment = self.env['account.payment'].with_context(active_id=invoice.id, active_model='account.move').create({
-            'journal_id': self.env['account.journal'].search(
-            [('company_id', '=', invoice[0].company_id.id), ('type', '=', 'cash')], limit=1).id,
-            'payment_method_id': self.env['account.payment.method'].search(domain, limit=1).id
-        })
-
-        payment.post()
+        # payment = self.env['account.payment'].with_context(active_id=invoice.id, active_model='account.move').create({
+        #     'journal_id': self.env['account.journal'].search(
+        #     [('company_id', '=', invoice[0].company_id.id), ('type', '=', 'cash')], limit=1).id,
+        #     'payment_method_id': self.env['account.payment.method'].search(domain, limit=1).id
+        # })
+        #
+        # payment.post()
 
     def cancel(self):
         self.order_id.unlink()

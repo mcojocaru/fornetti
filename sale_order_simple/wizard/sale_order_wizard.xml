@@ -27,6 +27,7 @@
                 <form string="Produse">
                     <group>
                         <group>
+                            <field name="current_cash_amount" string="Rest Casa"/>
                             <field name="amount_prev_day" string="Marfa Coapta ziua anterioara"/>
                             <field name="user_id" invisible="1"/>
                             <field name="profile_id" invisible="1"/>
@@ -40,9 +41,14 @@
                         <group>
                         </group>
                     </group>
-
                     <field name="lines_json1" invisible="1"/>
-                    <field name="lines_json2" widget="react_one2many_field"/>
+                    <field name="lines_json2" widget="react_one2many_field" />
+                    <field name="wiz_line_expenses">
+                        <tree editable="bottom">
+                            <field name="product_id"/>
+                            <field name="amount"/>
+                        </tree>
+                    </field>
                     <group>
                         <field name="amount_total" string="Pret Total"/>
                     </group>

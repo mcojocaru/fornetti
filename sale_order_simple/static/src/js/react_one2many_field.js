@@ -68,6 +68,11 @@ odoo.define('sale_order_simple.widgets', function (require) {
                     React.createElement(
                         'td',
                         null,
+                        this.props.line.is_section ? this.props.line.sold_qty_adjusted : ''
+                    ),
+                    React.createElement(
+                        'td',
+                        null,
                         this.props.line.price_unit
                     ),
                     React.createElement(
@@ -78,7 +83,7 @@ odoo.define('sale_order_simple.widgets', function (require) {
                     React.createElement(
                         'td',
                         null,
-                        this.props.line.price_total
+                        this.props.line.is_section ? this.props.line.price_total : ''
                     )
                 );
             }
@@ -99,7 +104,7 @@ odoo.define('sale_order_simple.widgets', function (require) {
                 var qty = event.target.value;
                 var value = _this2.state.value;
                 if (qty !== "") {
-                    value[index].current_qty = parseInt(qty);
+                    value[index].current_qty = parseFloat(qty);
 
                     //this will call onchange in the backend also
                     _this2.odoo_field_json_lines1._setValue(JSON.stringify(value));
@@ -149,6 +154,11 @@ odoo.define('sale_order_simple.widgets', function (require) {
                                 null,
                                 line.sold_qty
                             ),
+                            React.createElement(
+                                'td',
+                                null,
+                                line.sold_qty_adjusted
+                            ),
                             React.createElement('td', null),
                             React.createElement('td', null),
                             React.createElement(
@@ -187,7 +197,12 @@ odoo.define('sale_order_simple.widgets', function (require) {
                             React.createElement(
                                 'th',
                                 null,
-                                'Cantitate Vanduta'
+                                'Cantitate Vanduta (fara pierderi)'
+                            ),
+                            React.createElement(
+                                'th',
+                                null,
+                                'Cantitate Vanduta (cu pierderi)'
                             ),
                             React.createElement(
                                 'th',
