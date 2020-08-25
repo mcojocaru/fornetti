@@ -34,14 +34,7 @@
                                     <tree editable="bottom">
                                         <field name="sequence" widget="handle"/>
                                         <field name="product_id" string='Produs'/>
-                                    </tree>
-                                </field>
-                        </group>
-                        <group>
-                                <field name="expense_product_ids" string="Cheltuieli">
-                                    <tree editable="bottom">
-                                        <field name="sequence" widget="handle"/>
-                                        <field name="product_id" string='Produs'/>
+                                        <field name="uom_po_id"/>
                                     </tree>
                                 </field>
                         </group>

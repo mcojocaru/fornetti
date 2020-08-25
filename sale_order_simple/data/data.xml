@@ -77,5 +77,39 @@
             <field name="taxes_id">[(6, 0, [])]</field>
         </record>
 
+        <record id="product_uom_fornetti_bag_4" model="uom.uom">
+            <field name="category_id" ref="uom.product_uom_categ_kgm"/>
+            <field name="name">Punga 4 Kg</field>
+            <field name="factor_inv" eval="4"/>
+            <field name="uom_type">bigger</field>
+        </record>
+
+       <record id="product_uom_fornetti_box_48" model="uom.uom">
+            <field name="category_id" ref="uom.product_uom_categ_unit"/>
+            <field name="name">Cutie 48 buc</field>
+            <field name="factor_inv" eval="48"/>
+            <field name="uom_type">bigger</field>
+        </record>
+
+       <record id="product_uom_fornetti_bag_25" model="uom.uom">
+            <field name="category_id" ref="uom.product_uom_categ_unit"/>
+            <field name="name">Punga 25 buc</field>
+            <field name="factor_inv" eval="25"/>
+            <field name="uom_type">bigger</field>
+        </record>
+
+        <record id="product_uom_fornetti_bag_10" model="uom.uom">
+            <field name="category_id" ref="uom.product_uom_categ_unit"/>
+            <field name="name">Punga 10 buc</field>
+            <field name="factor_inv" eval="10"/>
+            <field name="uom_type">bigger</field>
+        </record>
+
+        <record id="product_uom_fornetti_bax" model="uom.uom">
+            <field name="category_id" ref="uom.product_uom_categ_unit"/>
+            <field name="name">Bax</field>
+            <field name="uom_type">bigger</field>
+        </record>
+
     </data>
 </openerp>

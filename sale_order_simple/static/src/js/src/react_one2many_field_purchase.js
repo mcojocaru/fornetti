@@ -34,6 +34,7 @@ odoo.define('sale_order_simple.purchase_widgets', function (require) {
                         <td><input type="text" value={this.state.qty} onChange={this.valueChangedHandler.bind(this)}/></td>
                         <td>{this.props.line.price_unit}</td>
                         <td>{this.props.line.product_uom_name}</td>
+                        <td>{this.props.line.uom_po_qty_name}</td>
                         <td>{this.props.line.price_total}</td>
                      </tr>
           }
@@ -77,6 +78,7 @@ odoo.define('sale_order_simple.purchase_widgets', function (require) {
                             <td>{line.current_qty}</td>
                             <td></td>
                             <td></td>
+                            <td></td>
                             <td>{line.price_total}</td>
                         </tr>
                       );
@@ -91,6 +93,7 @@ odoo.define('sale_order_simple.purchase_widgets', function (require) {
                     <th>Cantitate</th>
                     <th>Pret Unitar</th>
                     <th>UM</th>
+                    <th>Comanda</th>
                     <th>Total</th>
                   </thead>
                   <tbody>

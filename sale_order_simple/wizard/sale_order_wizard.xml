@@ -43,6 +43,10 @@
                     </group>
                     <field name="lines_json1" invisible="1"/>
                     <field name="lines_json2" widget="react_one2many_field" />
+                    <group>
+                        <field name="amount_sale_total" string="Total Vanzari"/>
+                    </group>
+                    <separator/>
                     <field name="wiz_line_expenses">
                         <tree editable="bottom">
                             <field name="product_id"/>
@@ -50,7 +54,7 @@
                         </tree>
                     </field>
                     <group>
-                        <field name="amount_total" string="Pret Total"/>
+                        <field name="amount_total" string="Total"/>
                     </group>
                     <footer>
                         <button name="confirm" string="Valideaza" class="btn btn-secondary" type="object"/>

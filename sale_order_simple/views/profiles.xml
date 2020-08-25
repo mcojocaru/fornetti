@@ -39,9 +39,6 @@
                         <group>
                             <field name="sale_product_list_id"/>
                         </group>
-                        <group>
-                                <field name="purchase_product_list_id"/>
-                        </group>
                     </group>
                 </form>
             </field>

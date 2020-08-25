@@ -42,6 +42,12 @@
 
                     <field name="lines_json1" invisible="1"/>
                     <field name="lines_json2" widget="react_one2many_field_purchase"/>
+
+                    <br/>
+                    <label for="qty_total_bags" string="Pungi:"/><field name="qty_total_bags"/><br/>
+                    <label for="qty_total_bax" string="Baxuri:"/><field name="qty_total_bax"/><br/>
+                    <label for="qty_total_bags" string="Cutii:"/><field name="qty_total_box"/><br/>
+
                     <group>
                         <field name="amount_total" string="Pret Total"/>
                     </group>

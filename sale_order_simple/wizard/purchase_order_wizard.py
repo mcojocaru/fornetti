@@ -26,6 +26,10 @@ class PurchaseOrderWizard(models.Model):
     amount_tax = fields.Monetary(string="Amount Tax", compute="_compute_amount_all", default=0)
     amount_total = fields.Monetary(string="Amount Total", compute="_compute_amount_all", default=0)
 
+    qty_total_bags = fields.Integer(compute='_compute_purchase_qty_bigger')
+    qty_total_bax = fields.Integer(compute='_compute_purchase_qty_bigger')
+    qty_total_box = fields.Integer(compute='_compute_purchase_qty_bigger')
+
     @api.model
     def create_wizard(self):
         res_id = self.create({})
@@ -53,6 +57,7 @@ class PurchaseOrderWizard(models.Model):
                 'product_name': wiz_line.order_line_id.name,
                 'product_uom': wiz_line.product_uom.id,
                 'product_uom_name': wiz_line.product_uom.name,
+                'uom_po_qty_name': wiz_line.uom_po_qty_name,
                 'current_qty': wiz_line.current_qty,
                 'price_unit': wiz_line.price_unit,
                 'is_section': wiz_line.is_section,
@@ -61,6 +66,17 @@ class PurchaseOrderWizard(models.Model):
                 'subtotal_order_lines': [(6, 0, wiz_line.subtotal_order_lines.ids)],
             }
         self.lines_json2 = json.dumps([_wiz_line_data(line) for line in self.wiz_line])
+
+    @api.depends('wiz_line.price_subtotal')
+    def _compute_purchase_qty_bigger(self):
+        for obj in self:
+            obj.qty_total_bags = sum([l.uom_po_qty for l in obj.wiz_line.filtered(
+                lambda wl: wl.is_section != True and wl.uom_po_id and wl.uom_po_id.name.startswith('Punga'))])
+            obj.qty_total_bax = sum([l.price_tax for l in obj.wiz_line.filtered(
+                lambda wl: wl.is_section != True and wl.uom_po_id and wl.uom_po_id.name.startswith('Bax'))])
+            obj.qty_total_box = sum([l.price_tax for l in obj.wiz_line.filtered(
+                lambda wl: wl.is_section != True and wl.uom_po_id and wl.uom_po_id.name.startswith('Cutie'))])
+
 
     @api.depends('wiz_line.price_subtotal', 'wiz_line.price_tax')
     def _compute_amount_all(self):
@@ -130,6 +146,7 @@ class PurchaseOrderWizard(models.Model):
                     'product_name': po_line.product_id.name,
                     'product_uom': po_line.product_uom.id,
                     'product_uom_name': po_line.product_uom.name,
+                    'uom_po_id': product_line.uom_po_id and product_line.uom_po_id.id or None,
                     'current_qty': 0,
                     'price_unit': po_line.price_unit,
                     'is_section': False,
@@ -142,6 +159,7 @@ class PurchaseOrderWizard(models.Model):
                     'product_name': po_line.name,
                     'product_uom': po_line.product_uom.id,
                     'product_uom_name': po_line.product_uom.name,
+                    'uom_po_id': product_line.uom_po_id and product_line.uom_po.id or None,
                     'current_qty': 0,
                     'price_unit': 0,
                     'is_section': True,
@@ -199,6 +217,7 @@ class PurchaseOrderWizard(models.Model):
         # payment.post()
 
     def cancel(self):
+        self.order_id.button_cancel()
         self.order_id.unlink()
 
 
@@ -215,6 +234,9 @@ class PurchaseOrderWizardLine(models.Model):
     current_qty = fields.Float(string="Product Qty", default=0.0)
     product_uom = fields.Many2one(related="order_line_id.product_uom")
     product_uom_name = fields.Char(related="product_uom.name")
+    uom_po_id = fields.Many2one('uom.uom', string="Comanda")
+    uom_po_qty = fields.Float('Cantitate Comanda', compute='_compute_uom_po_qty')
+    uom_po_qty_name = fields.Char(compute='_compute_uom_po_qty')
     price_unit = fields.Float(related='order_line_id.price_unit')
     price_total = fields.Monetary(string="Price Total")
     price_subtotal = fields.Monetary(string="Price Total")
@@ -228,6 +250,18 @@ class PurchaseOrderWizardLine(models.Model):
                 line.price_total = line.currency_id.round(line.order_line_id.price_total)
                 line.price_subtotal = line.currency_id.round(line.order_line_id.price_subtotal)
                 line.price_tax = line.currency_id.round(line.order_line_id.price_tax)
+
+    @api.depends('current_qty')
+    def _compute_uom_po_qty(self):
+        for line in self:
+            if not line.is_section:
+                if line.product_id and line.uom_po_id and line.product_uom != line.uom_po_id:
+                    line.uom_po_qty = line.product_uom._compute_quantity(line.current_qty, line.uom_po_id)
+                else:
+                    line.uom_po_qty = line.current_qty
+                line.uom_po_qty_name = f'{int(line.uom_po_qty)} {line.uom_po_id and line.uom_po_id.name or line.product_uom.name}'
+            else:
+                line.uom_po_qty_name = ''
 
     def update_section_line(self, non_section_lines):
         for section_line in self:

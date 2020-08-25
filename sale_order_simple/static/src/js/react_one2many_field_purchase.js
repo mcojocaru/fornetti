@@ -68,6 +68,11 @@ odoo.define('sale_order_simple.purchase_widgets', function (require) {
                     React.createElement(
                         'td',
                         null,
+                        this.props.line.uom_po_qty_name
+                    ),
+                    React.createElement(
+                        'td',
+                        null,
                         this.props.line.price_total
                     )
                 );
@@ -135,6 +140,7 @@ odoo.define('sale_order_simple.purchase_widgets', function (require) {
                             ),
                             React.createElement('td', null),
                             React.createElement('td', null),
+                            React.createElement('td', null),
                             React.createElement(
                                 'td',
                                 null,
@@ -172,6 +178,11 @@ odoo.define('sale_order_simple.purchase_widgets', function (require) {
                                 'th',
                                 null,
                                 'UM'
+                            ),
+                            React.createElement(
+                                'th',
+                                null,
+                                'Comanda'
                             ),
                             React.createElement(
                                 'th',

@@ -12,7 +12,6 @@ class Profile(models.Model):
     po_partner_id = fields.Many2one('res.partner', string='Supplier', required=True)
     warehouse_id = fields.Many2one('stock.warehouse', string='Warehouse', required=True)
     sale_product_list_id = fields.Many2one('sale_order_simple.sale_product_list', string='Sale Product List', required=True)
-    purchase_product_list_id = fields.Many2one('sale_order_simple.sale_product_list', string='Purchase Product List', required=True)
     product_ids = fields.One2many(related='sale_product_list_id.product_ids', string="Products")
     expense_product_ids = fields.One2many(related='sale_product_list_id.expense_product_ids', string="Expeses")
 
@@ -34,6 +33,7 @@ class ProfileProducts(models.Model):
 
     sequence = fields.Integer('Sequence', default=1, help="Gives the sequence order when displaying.")
     product_id = fields.Many2one('product.product', string='Product')
+    uom_po_id = fields.Many2one('uom.uom', string="UM Comanda")
 
 
 class ResUsers(models.Model):

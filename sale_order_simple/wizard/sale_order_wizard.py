@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import api, fields, models, tools, _
+from odoo import api, fields, models, _
 import json
 
-def round(amount):
-    return tools.float_round(amount, precision_digits=2)
+def _round(amount):
+    #return tools.float__round(amount, precision_digits=2)
+    return round(amount, 2)
 
 class SaleOrderWizard(models.Model):
     _name = 'sale_order_simple.wizard'
@@ -27,6 +28,8 @@ class SaleOrderWizard(models.Model):
 
     wiz_line_expenses = fields.One2many('sale_order_simple.wizard_line_expense', 'wizard_id', string="Expense List", default=None)
 
+    amount_sale_total = fields.Monetary(string="Amount Total", compute="_compute_amount_all", default=0)
+
     amount_untaxed = fields.Monetary(string="Amount Untaxed", compute="_compute_amount_all", default=0)
     amount_tax = fields.Monetary(string="Amount Tax", compute="_compute_amount_all", default=0)
     amount_total = fields.Monetary(string="Amount Total", compute="_compute_amount_all", default=0)
@@ -35,6 +38,8 @@ class SaleOrderWizard(models.Model):
     def _compute_amount_all(self):
         self.order_id._amount_all()
         self.amount_total = self.current_cash_amount + self.order_id.amount_total + self.amount_prev_day
+        self.amount_sale_total = _round(sum([sl.price_total for sl in self.order_id.order_line.filtered(
+            lambda l: l.product_id in self.profile_id.product_ids.mapped('product_id'))]))
 
     @api.model
     def create_wizard(self):
@@ -64,15 +69,15 @@ class SaleOrderWizard(models.Model):
                 'product_id': wiz_line.product_id.id,
                 'product_name': wiz_line.order_line_id.name,
                 'free_qty': wiz_line.product_id.free_qty,
-                'sold_qty': round(wiz_line.sold_qty),
-                'sold_qty_adjusted': round(wiz_line.sold_qty_adjusted),
+                'sold_qty': _round(wiz_line.sold_qty),
+                'sold_qty_adjusted': _round(wiz_line.sold_qty_adjusted),
                 'product_uom': wiz_line.product_uom.id,
                 'product_uom_name': wiz_line.product_uom.name,
                 'current_qty': wiz_line.current_qty,
-                'price_unit': wiz_line.price_unit,
+                'price_unit': wiz_line.price_unit_initial,
                 'is_section': wiz_line.is_section,
-                'price_total': round(wiz_line.price_total),
-                'price_subtotal': round(wiz_line.price_subtotal),
+                'price_total': _round(wiz_line.price_total),
+                'price_subtotal': _round(wiz_line.price_subtotal),
                 'subtotal_order_lines': [(6, 0, wiz_line.subtotal_order_lines.ids)],
             }
         self.lines_json2 = json.dumps([_wiz_line_data(line) for line in self.wiz_line])
@@ -165,6 +170,7 @@ class SaleOrderWizard(models.Model):
                     'product_uom_name': so_line.product_uom.name,
                     'current_qty': product_line.product_id.free_qty,
                     'price_unit': so_line.price_unit,
+                    'price_unit_initial': so_line.price_unit,
                     'is_section': False,
                 }
                 current_qty_section += product_line.product_id.free_qty
@@ -181,6 +187,7 @@ class SaleOrderWizard(models.Model):
                     'sold_qty': 0,
                     'sold_qty_adjusted': 0,
                     'price_unit': 0,
+                    'price_unit_initial': 0,
                     'is_section': True,
                     'subtotal_order_lines': [(6, 0, subtotal_so_lines)]
                 }
@@ -191,19 +198,19 @@ class SaleOrderWizard(models.Model):
         return lines
 
     def confirm(self):
-        for line in self.wiz_line:
-            qty = line.free_qty - line.current_qty
-            if line.product_uom != self.env.ref('uom.product_uom_unit') and qty > 0:
-                bom_id = self._create_bom(line)
-                unbild = self.env['mrp.unbuild'].create({
-                    'product_id': line.product_id.id,
-                    'product_uom_id': line.product_uom.id,
-                    'location_id': self.env.ref('stock.stock_location_stock').id,
-                    'location_dest_id': self.env.ref('stock.stock_location_stock').id,
-                    'bom_id': bom_id.id,
-                    'product_qty': qty
-                })
-                unbild.sudo().action_validate()
+        # for line in self.wiz_line:
+        #     qty = line.free_qty - line.current_qty
+        #     if line.product_uom != self.env.ref('uom.product_uom_unit') and qty > 0:
+        #         bom_id = self._create_bom(line)
+        #         unbild = self.env['mrp.unbuild'].create({
+        #             'product_id': line.product_id.id,
+        #             'product_uom_id': line.product_uom.id,
+        #             'location_id': self.env.ref('stock.stock_location_stock').id,
+        #             'location_dest_id': self.env.ref('stock.stock_location_stock').id,
+        #             'bom_id': bom_id.id,
+        #             'product_qty': qty
+        #         })
+        #         unbild.sudo().action_validate()
 
         so_line = self.env['sale.order.line'].with_context(round=True).create(
             {
@@ -215,9 +222,11 @@ class SaleOrderWizard(models.Model):
             })
 
         self.order_id.action_confirm()
+        self.order_id.picking_ids.action_assign()
         for pick in self.order_id.picking_ids:
             wiz = self.env['stock.immediate.transfer'].create({'pick_ids': [(4, pick.id)]})
             wiz.process()
+
 
         invoice = self.order_id._create_invoices()
         if invoice:
@@ -243,32 +252,32 @@ class SaleOrderWizard(models.Model):
             "type": "ir.actions.do_nothing",
         }
 
-    def _create_bom(self, line):
-        bom = {
-            'product_tmpl_id': line.product_id.product_tmpl_id.id,
-            'product_uom_id': line.product_uom.id,
-            'type': 'normal',
-            'product_qty': 1
-        }
-        bom_id = self.env['mrp.bom'].create(bom)
-        ratio = 1 - float(self.env['ir.config_parameter'].get_param('fornetti.product_loss_ratio'))
-        bom_line1 = {
-            'product_id': line.product_id.id,
-            'product_qty': ratio,
-            'product_uom_id': line.product_uom.id,
-            'bom_id': bom_id.id
-        }
-        self.env['mrp.bom.line'].create(bom_line1)
-        prod_loss = self.env.ref('sale_order_simple.product_fornetti_loss')
-        bom_line2 = {
-            'product_id': prod_loss.id,
-            'product_qty': 1 - ratio,
-            'product_uom_id': prod_loss.uom_id.id,
-            'bom_id': bom_id.id
-        }
-        self.env['mrp.bom.line'].create(bom_line2)
-
-        return bom_id
+    # def _create_bom(self, line):
+    #     bom = {
+    #         'product_tmpl_id': line.product_id.product_tmpl_id.id,
+    #         'product_uom_id': line.product_uom.id,
+    #         'type': 'normal',
+    #         'product_qty': 1
+    #     }
+    #     bom_id = self.env['mrp.bom'].create(bom)
+    #     ratio = 1 - float(self.env['ir.config_parameter'].get_param('fornetti.product_loss_ratio'))
+    #     bom_line1 = {
+    #         'product_id': line.product_id.id,
+    #         'product_qty': ratio,
+    #         'product_uom_id': line.product_uom.id,
+    #         'bom_id': bom_id.id
+    #     }
+    #     self.env['mrp.bom.line'].create(bom_line1)
+    #     prod_loss = self.env.ref('sale_order_simple.product_fornetti_loss')
+    #     bom_line2 = {
+    #         'product_id': prod_loss.id,
+    #         'product_qty': 1 - ratio,
+    #         'product_uom_id': prod_loss.uom_id.id,
+    #         'bom_id': bom_id.id
+    #     }
+    #     self.env['mrp.bom.line'].create(bom_line2)
+    #
+    #     return bom_id
 
 
 class SaleOrderWizardLine(models.Model):
@@ -288,6 +297,7 @@ class SaleOrderWizardLine(models.Model):
     product_uom = fields.Many2one(related="order_line_id.product_uom")
     product_uom_name = fields.Char(related="product_uom.name")
     price_unit = fields.Float(related='order_line_id.price_unit')
+    price_unit_initial = fields.Float('Price Unit Initial')
     price_total = fields.Monetary(string="Price Total")
     price_subtotal = fields.Monetary(string="Price Total")
     price_tax = fields.Monetary(string="Price Total")
@@ -297,33 +307,35 @@ class SaleOrderWizardLine(models.Model):
         ratio = 1 - float(self.env['ir.config_parameter'].get_param('fornetti.product_loss_ratio'))
         for line in self:
             if not (line.is_section or line.product_uom == self.env.ref('uom.product_uom_unit')):
-                line.sold_qty_adjusted =  round(ratio * (line.free_qty - line.current_qty))
+                line.sold_qty_adjusted =  _round(ratio * (line.free_qty - line.current_qty))
             else:
-                line.sold_qty_adjusted = round(line.free_qty - line.current_qty)
-            line.sold_qty = line.currency_id.round(line.free_qty - line.current_qty)
+                line.sold_qty_adjusted = _round(line.free_qty - line.current_qty)
+            line.sold_qty = _round(line.free_qty - line.current_qty)
 
     def update_price_total(self):
         for line in self:
             if not line.is_section:
                 ratio = 1 - float(self.env['ir.config_parameter'].get_param('fornetti.product_loss_ratio'))
+                price_unit = self.env['account.tax']._fix_tax_included_price_company(
+                    line.order_line_id._get_display_price(line.product_id), line.product_id.taxes_id,
+                    line.order_line_id.tax_id, line.order_line_id.company_id)
                 if line.product_uom != self.env.ref('uom.product_uom_unit'):
-                    line.order_line_id.product_uom_qty = ratio * (line.free_qty - line.current_qty)
-                else:
-                    line.order_line_id.product_uom_qty = line.free_qty - line.current_qty
+                    line.order_line_id.price_unit = ratio * price_unit
+                line.order_line_id.product_uom_qty = line.free_qty - line.current_qty
                 line.order_line_id._compute_amount()
-                line.price_total = round(line.order_line_id.price_total)
-                line.price_subtotal = round(line.order_line_id.price_subtotal)
-                line.price_tax = round(line.order_line_id.price_tax)
+                line.price_total = _round(line.order_line_id.price_total)
+                line.price_subtotal = _round(line.order_line_id.price_subtotal)
+                line.price_tax = _round(line.order_line_id.price_tax)
 
     def update_section_line(self, non_section_lines):
         for section_line in self:
             lines = non_section_lines.filtered(lambda wl: wl.order_line_id._origin in section_line.subtotal_order_lines._origin)
             section_line.current_qty = sum([l.current_qty for l in lines])
             section_line.sold_qty = sum([l.sold_qty for l in lines])
-            section_line.sold_qty_adjusted = round(sum([l.sold_qty_adjusted for l in lines]))
-            section_line.price_subtotal = round(sum([l.price_total for l in lines]))
-            section_line.price_total = round(sum([l.price_total for l in lines]))
-            section_line.price_tax = round(sum([l.price_tax for l in lines]))
+            section_line.sold_qty_adjusted = _round(sum([l.sold_qty_adjusted for l in lines]))
+            section_line.price_subtotal = _round(sum([l.price_total for l in lines]))
+            section_line.price_total = _round(sum([l.price_total for l in lines]))
+            section_line.price_tax = _round(sum([l.price_tax for l in lines]))
 
 
 class SaleOrderWizardExpLine(models.Model):
