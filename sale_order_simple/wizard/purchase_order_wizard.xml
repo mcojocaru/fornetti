@@ -34,6 +34,9 @@
                             <field name="company_id" invisible="1"/>
                             <field name="currency_id" invisible="1"/>
                             <field name="state" invisible="1"/>
+                            <field name="partner_ids" invisible="1"/>
+                            <field name="partner_id" string="Furnizor" domain="[('id', 'in', partner_ids)]"
+                                   options="{'no_quick_create':True,'no_create_edit':True,'no_open': True,}"/>
                             <field name="supplier_invoice_number" string="Numar factura furnizor"/>
                         </group>
                         <group>

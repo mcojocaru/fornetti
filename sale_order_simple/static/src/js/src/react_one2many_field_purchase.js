@@ -18,7 +18,14 @@ odoo.define('sale_order_simple.purchase_widgets', function (require) {
 
           constructor(props) {
             super(props);
-            this.state = {qty: this.props.line.current_qty};
+            this.state = {qty: this.props.qty};
+          }
+
+          static getDerivedStateFromProps(props, state) {
+             if (props.qty === 0) {
+                 state.qty = props.qty;
+             }
+             return state;
           }
 
           valueChangedHandler = (event) => {
@@ -31,7 +38,7 @@ odoo.define('sale_order_simple.purchase_widgets', function (require) {
           render() {
                 return <tr>
                         <td>{this.props.line.product_name}</td>
-                        <td><input type="text" value={this.state.qty} onChange={this.valueChangedHandler.bind(this)}/></td>
+                        <td><input type="text" disabled={this.props.line.disabled == true} value={this.state.qty} onChange={this.valueChangedHandler.bind(this)}/></td>
                         <td>{this.props.line.price_unit}</td>
                         <td>{this.props.line.product_uom_name}</td>
                         <td>{this.props.line.uom_po_qty_name}</td>
@@ -70,7 +77,7 @@ odoo.define('sale_order_simple.purchase_widgets', function (require) {
           render() {
               const lines = this.state.value.map((line, index) => {
                   if (!line.is_section) {
-                      return <TableRow key={line.id} line={line} index={index} changed={this.valueChangedHandler.bind(this)}/>;
+                      return <TableRow key={line.id} qty={line.current_qty} line={line} index={index} changed={this.valueChangedHandler.bind(this)}/>;
                   } else {
                       return (
                         <tr className="table-primary" key={line.id}>

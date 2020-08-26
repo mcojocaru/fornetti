@@ -6,17 +6,36 @@ from odoo import api, fields, models, _
 import json
 
 
+def _wiz_line_data(wiz_line):
+    return {
+        'order_line_id': wiz_line.order_line_id.id,
+        'product_id': wiz_line.product_id.id,
+        'product_name': wiz_line.order_line_id.name,
+        'product_uom': wiz_line.product_uom.id,
+        'product_uom_name': wiz_line.product_uom.name,
+        'uom_po_qty_name': wiz_line.uom_po_qty_name,
+        'current_qty': wiz_line.current_qty,
+        'price_unit': wiz_line.price_unit,
+        'is_section': wiz_line.is_section,
+        'price_total': wiz_line.price_total,
+        'price_subtotal': wiz_line.price_subtotal,
+        'subtotal_order_lines': [(6, 0, wiz_line.subtotal_order_lines.ids)],
+        'disabled': wiz_line.disabled,
+    }
+
 class PurchaseOrderWizard(models.Model):
     _name = 'sale_order_simple.purchase_wizard'
 
     supplier_invoice_number = fields.Char('Supplier Invoice Number', required=True)
     user_id = fields.Many2one('res.users', string='User', default=None)
     profile_id = fields.Many2one('sale_order_simple.user_profile', string='Profile', default=None)
+    partner_id = fields.Many2one('res.partner', string='Supplier')
+    partner_ids = fields.Many2many('res.partner', compute="_compute_seller_ids")
 
     lines_json1 = fields.Char('Json1', default='')
     lines_json2 = fields.Char('Json2', default='')
     order_id = fields.Many2one('purchase.order', string="Purchase Order", default=None)
-    partner_id = fields.Many2one(related='order_id.partner_id', default=None)
+
     company_id = fields.Many2one(related="order_id.company_id", default=None)
     state = fields.Selection(related="order_id.state", default=None)
     wiz_line = fields.One2many('sale_order_simple.purchase_wizard_line', 'wizard_id', string="Product List", default=None)
@@ -30,9 +49,24 @@ class PurchaseOrderWizard(models.Model):
     qty_total_bax = fields.Integer(compute='_compute_purchase_qty_bigger')
     qty_total_box = fields.Integer(compute='_compute_purchase_qty_bigger')
 
+    def _compute_seller_ids(self):
+        self.partner_ids = self.profile_id.product_ids.mapped('product_id.seller_ids.name')
+
+    @api.onchange('partner_id')
+    def onchange_partner_id(self):
+        partner_id = self.partner_id
+        self.order_id.order_line.unlink()
+        self.order_id.partner_id = partner_id
+        self.order_id.onchange_partner_id()
+
+        self._origin.wiz_line.unlink()
+        self._origin.partner_id = partner_id
+        lines = self.create_wiz_lines(self._origin)
+        self.lines_json2 = json.dumps(lines)
+
     @api.model
     def create_wizard(self):
-        res_id = self.create({})
+        res_id = self.create({'partner_id':self.env.user.profile_id.po_partner_id.id })
         lines = self.create_wiz_lines(res_id)
         res_id.lines_json1 = res_id.lines_json2 = json.dumps(lines)
 
@@ -49,22 +83,6 @@ class PurchaseOrderWizard(models.Model):
     @api.onchange('lines_json1')
     def lines_json1_onchange(self):
         self.update_wiz_lines_from_json(self.lines_json1)
-
-        def _wiz_line_data(wiz_line):
-            return {
-                'order_line_id': wiz_line.order_line_id.id,
-                'product_id': wiz_line.product_id.id,
-                'product_name': wiz_line.order_line_id.name,
-                'product_uom': wiz_line.product_uom.id,
-                'product_uom_name': wiz_line.product_uom.name,
-                'uom_po_qty_name': wiz_line.uom_po_qty_name,
-                'current_qty': wiz_line.current_qty,
-                'price_unit': wiz_line.price_unit,
-                'is_section': wiz_line.is_section,
-                'price_total': wiz_line.price_total,
-                'price_subtotal': wiz_line.price_subtotal,
-                'subtotal_order_lines': [(6, 0, wiz_line.subtotal_order_lines.ids)],
-            }
         self.lines_json2 = json.dumps([_wiz_line_data(line) for line in self.wiz_line])
 
     @api.depends('wiz_line.price_subtotal')
@@ -72,9 +90,9 @@ class PurchaseOrderWizard(models.Model):
         for obj in self:
             obj.qty_total_bags = sum([l.uom_po_qty for l in obj.wiz_line.filtered(
                 lambda wl: wl.is_section != True and wl.uom_po_id and wl.uom_po_id.name.startswith('Punga'))])
-            obj.qty_total_bax = sum([l.price_tax for l in obj.wiz_line.filtered(
+            obj.qty_total_bax = sum([l.uom_po_qty for l in obj.wiz_line.filtered(
                 lambda wl: wl.is_section != True and wl.uom_po_id and wl.uom_po_id.name.startswith('Bax'))])
-            obj.qty_total_box = sum([l.price_tax for l in obj.wiz_line.filtered(
+            obj.qty_total_box = sum([l.uom_po_qty for l in obj.wiz_line.filtered(
                 lambda wl: wl.is_section != True and wl.uom_po_id and wl.uom_po_id.name.startswith('Cutie'))])
 
 
@@ -92,15 +110,17 @@ class PurchaseOrderWizard(models.Model):
         profile_id = self.env.user.profile_id
         if profile_id:
             res['profile_id'] = self.env.user.profile_id.id
+            res['partner_id'] = profile_id.po_partner_id.id
+
             order_id = self.env['purchase.order'].create(
                 {'partner_id': profile_id.po_partner_id.id,
             })
             order_id.onchange_partner_id()
 
             res['order_id'] = order_id.id
-            res['partner_id'] = order_id.partner_id.id
             res['company_id'] = order_id.company_id.id
             res['state'] = order_id.state
+            res['partner_ids'] = [(6, 0, self.profile_id.product_ids.mapped('product_id.seller_ids.name').ids)]
 
         return res
 
@@ -133,7 +153,7 @@ class PurchaseOrderWizard(models.Model):
                     'product_uom': product_line.product_id.uom_id.id,
                     'display_type': 'line_section' if product_line.product_id.categ_id == subtotal_categ else False,
                     'price_unit': 0,
-                    'date_planned': fields.Date.today()
+                    'date_planned': fields.Date.today(),
                 })
             subtotal_po_lines.append(po_line.id)
             po_line.onchange_product_id()
@@ -146,10 +166,11 @@ class PurchaseOrderWizard(models.Model):
                     'product_name': po_line.product_id.name,
                     'product_uom': po_line.product_uom.id,
                     'product_uom_name': po_line.product_uom.name,
-                    'uom_po_id': product_line.uom_po_id and product_line.uom_po_id.id or None,
+                    'uom_po_id': product_line.uom_po_id and product_line.uom_po_id.id or po_line.product_uom.id,
                     'current_qty': 0,
                     'price_unit': po_line.price_unit,
                     'is_section': False,
+                    'disabled': wiz_id.partner_id not in po_line.product_id.seller_ids.mapped('name')
                 }
             else:
                 wiz_line = {
@@ -159,11 +180,12 @@ class PurchaseOrderWizard(models.Model):
                     'product_name': po_line.name,
                     'product_uom': po_line.product_uom.id,
                     'product_uom_name': po_line.product_uom.name,
-                    'uom_po_id': product_line.uom_po_id and product_line.uom_po.id or None,
+                    'uom_po_id': product_line.uom_po_id and product_line.uom_po.id or po_line.product_uom.id,
                     'current_qty': 0,
                     'price_unit': 0,
                     'is_section': True,
-                    'subtotal_order_lines': [(6, 0, subtotal_po_lines)]
+                    'subtotal_order_lines': [(6, 0, subtotal_po_lines)],
+                    'disabled': True,
                 }
                 subtotal_po_lines = []
             self.env['sale_order_simple.purchase_wizard_line'].create(wiz_line)
@@ -241,6 +263,11 @@ class PurchaseOrderWizardLine(models.Model):
     price_total = fields.Monetary(string="Price Total")
     price_subtotal = fields.Monetary(string="Price Total")
     price_tax = fields.Monetary(string="Price Total")
+    disabled = fields.Boolean(default=False)
+
+    def update_disabled(self):
+        for line in self:
+            line.disabled = line.wizard_id.partner_id not in line.product_id.seller_ids.mapped('name')
 
     def update_price_total(self):
         for line in self:
