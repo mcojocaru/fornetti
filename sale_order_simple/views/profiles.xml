@@ -27,11 +27,15 @@
                         <group>
                             <field name="name"/>
                             <field name="user_id"/>
+                            <field name="amount_prev_day" string="Marfa coapta ziua anterioara"/>
+                            <field name="current_cash_amount" string="Cash"/>
+
                         </group>
                         <group>
                             <field name="so_partner_id" context="{'res_partner_search_mode': 'customer'}"/>
                             <field name="po_partner_id" context="{'res_partner_search_mode': 'supplier'}"/>
                             <field name="warehouse_id"/>
+                            <field name="flow_state"/>
                         </group>
                     </group>
 

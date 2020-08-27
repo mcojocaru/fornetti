@@ -8,6 +8,11 @@ class Profile(models.Model):
     
     name = fields.Char('Name', required=True)
     user_id = fields.Many2one('res.users', string="User")
+    current_cash_amount = fields.Float(related='user_id.current_cash_amount', readonly=False)
+    amount_prev_day = fields.Float(related='user_id.amount_prev_day', readonly=False)
+
+    flow_state = fields.Selection(selection=[('locked', 'Locked'), ('unlocked', 'Unlocked')], string="Flow State", default='locked')
+
     so_partner_id = fields.Many2one('res.partner', string='Customer', required=True)
     po_partner_id = fields.Many2one('res.partner', string='Supplier', required=True)
     warehouse_id = fields.Many2one('stock.warehouse', string='Warehouse', required=True)
@@ -41,6 +46,7 @@ class ResUsers(models.Model):
 
     profile_id = fields.Many2one('sale_order_simple.user_profile', string='Profile', compute='_compute_profile')
     current_cash_amount = fields.Float('Current Cash Amount', default=0.0)
+    amount_prev_day = fields.Float(string='Amount Previous Day', default = 0.0)
 
     def _compute_profile(self):
         for user in self:

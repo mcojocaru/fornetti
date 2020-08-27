@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.actions.server" id="action_server_start_wizard">
+            <field name="name">Start</field>
+            <field name="model_id" ref="sale_order_simple.model_sale_order_simple_start_wizard"/>
+            <field name="binding_model_id" ref="sale_order_simple.model_sale_order_simple_start_wizard" />
+            <field name="binding_view_types">form</field>
+            <field name="state">code</field>
+            <field name="code">action = model.create_wizard()</field>
+        </record>
+
+        <record id="action_start_wizard" model="ir.actions.act_window">
+            <field name="name">Start</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">sale_order_simple.start_wizard</field>
+            <field name="view_mode">form</field>
+        </record>
+
+        <!--  -->
+        <record id="action_start_wizard_form" model="ir.ui.view">
+            <field name="name">Start</field>
+            <field name="model">sale_order_simple.start_wizard</field>
+            <field name="arch" type="xml">
+                <form string="Start" create="false" edit="false">
+                    <field name="flow_state" invisible="1"/>
+                    <div class="oe_button_box" style="text-align: center !important;" name="button_box">
+                        <button string="Start Inventar" style="border: 1px solid;"
+                                class="oe_stat_button"
+                                icon="fa-random" name="start_inventory" type="object" attrs="{'invisible': [('flow_state', '=', 'unlocked')]}"/>
+                        <button string="Vanzare" style="border: 1px solid; margin-left: 10px;"
+                                class="oe_stat_button"
+                                icon="fa-cubes" name="start_sale" type="object"
+                                attrs="{'invisible': [('flow_state', '=', 'locked')]}"/>
+                        <button string="Intrare" style="border: 1px solid; margin-left: 10px;"
+                                class="oe_stat_button"
+                                icon="fa-th-list" name="start_purchase" type="object"
+                                attrs="{'invisible': [('flow_state', '=', 'locked')]}"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window.view" id="start_wizard_view_form_view">
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="action_start_wizard_form"/>
+            <field name="act_window_id" ref="action_start_wizard"/>
+        </record>
+
+    </data>
+</openerp>

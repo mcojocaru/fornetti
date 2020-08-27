@@ -21,8 +21,9 @@ class SaleOrderWizard(models.Model):
     pricelist_id = fields.Many2one(related="order_id.pricelist_id", default=None)
     company_id = fields.Many2one(related="order_id.company_id", default=None)
     state = fields.Selection(related="order_id.state", default=None)
-    amount_prev_day = fields.Float(string='Amount Previous Day', default = 0.0)
-    current_cash_amount = fields.Float('Current Cash Amount', related='user_id.current_cash_amount', readonly=True)
+    amount_prev_day = fields.Float(string='Amount Previous Day', default = 0.0, readonly=True)
+    amount_today = fields.Float(string='Amount Previous Day', default=0.0)
+    current_cash_amount = fields.Float('Current Cash Amount', related='user_id.current_cash_amount')
     wiz_line = fields.One2many('sale_order_simple.wizard_line', 'wizard_id', string="Product List", default=None)
     currency_id = fields.Many2one(related='order_id.currency_id', string='Currency', readonly=True, default=None)
 
@@ -34,7 +35,7 @@ class SaleOrderWizard(models.Model):
     amount_tax = fields.Monetary(string="Amount Tax", compute="_compute_amount_all", default=0)
     amount_total = fields.Monetary(string="Amount Total", compute="_compute_amount_all", default=0)
 
-    @api.depends('wiz_line.price_subtotal', 'wiz_line_expenses.price_total', 'amount_prev_day')
+    @api.depends('wiz_line.price_subtotal', 'wiz_line_expenses.price_total')
     def _compute_amount_all(self):
         self.order_id._amount_all()
         self.amount_total = self.current_cash_amount + self.order_id.amount_total + self.amount_prev_day
@@ -100,6 +101,7 @@ class SaleOrderWizard(models.Model):
             res['pricelist_id'] = order_id.pricelist_id.id
             res['company_id'] = order_id.company_id.id
             res['state'] = order_id.state
+            res['amount_prev_day'] = self.env.user.amount_prev_day
 
         return res
 
@@ -226,7 +228,8 @@ class SaleOrderWizard(models.Model):
         for pick in self.order_id.picking_ids:
             wiz = self.env['stock.immediate.transfer'].create({'pick_ids': [(4, pick.id)]})
             wiz.process()
-
+        self.user_id.current_cash_amount = self.amount_total
+        self.user_id.amount_prev_day = self.amount_today
 
         invoice = self.order_id._create_invoices()
         if invoice:

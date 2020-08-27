@@ -35,7 +35,7 @@ odoo.define('sale_order_simple.purchase_widgets', function (require) {
                 }
             };
 
-            _this.state = { qty: _this.props.line.current_qty };
+            _this.state = { qty: _this.props.qty };
             return _this;
         }
 
@@ -53,7 +53,7 @@ odoo.define('sale_order_simple.purchase_widgets', function (require) {
                     React.createElement(
                         'td',
                         null,
-                        React.createElement('input', { type: 'text', value: this.state.qty, onChange: this.valueChangedHandler.bind(this) })
+                        React.createElement('input', { type: 'text', disabled: this.props.line.disabled == true, value: this.state.qty, onChange: this.valueChangedHandler.bind(this) })
                     ),
                     React.createElement(
                         'td',
@@ -76,6 +76,14 @@ odoo.define('sale_order_simple.purchase_widgets', function (require) {
                         this.props.line.price_total
                     )
                 );
+            }
+        }], [{
+            key: 'getDerivedStateFromProps',
+            value: function getDerivedStateFromProps(props, state) {
+                if (props.qty === 0) {
+                    state.qty = props.qty;
+                }
+                return state;
             }
         }]);
 
@@ -123,7 +131,7 @@ odoo.define('sale_order_simple.purchase_widgets', function (require) {
 
                 var lines = this.state.value.map(function (line, index) {
                     if (!line.is_section) {
-                        return React.createElement(TableRow, { key: line.id, line: line, index: index, changed: _this3.valueChangedHandler.bind(_this3) });
+                        return React.createElement(TableRow, { key: line.id, qty: line.current_qty, line: line, index: index, changed: _this3.valueChangedHandler.bind(_this3) });
                     } else {
                         return React.createElement(
                             'tr',

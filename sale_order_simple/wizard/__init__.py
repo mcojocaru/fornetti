@@ -3,3 +3,4 @@
 
 from . import sale_order_wizard
 from . import purchase_order_wizard
+from . import  start_wizard

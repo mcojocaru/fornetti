@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  © 2014-2016 Akretion (http://www.akretion.com/)
-  @author Alexis de Lattre <alexis.delattre@akretion.com>
-  License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
--->
+  -->
 
 <odoo>
 
@@ -14,19 +11,19 @@
               sequence="10"/>
     <!--  -->
 
-<!--    <menuitem id="menu_fornetti_1"-->
-<!--              name="Selectie"-->
-<!--              parent="fornetti_root"-->
-<!--              sequence="15"-->
-<!--              action="sale_order_simple.action_server_selection_order_wizard"/>-->
-
     <menuitem id="menu_fornetti_1"
+              name="Start"
+              parent="fornetti_root"
+              sequence="15"
+              action="sale_order_simple.action_server_start_wizard"/>
+
+    <menuitem id="menu_fornetti_2"
               name="Adauga Vanzare"
               parent="fornetti_root"
               sequence="20"
               action="sale_order_simple.action_server_sale_order_wizard"/>
 
-    <menuitem id="menu_fornetti_2"
+    <menuitem id="menu_fornetti_3"
               name="Adauga Intrare"
               parent="fornetti_root"
               sequence="25"

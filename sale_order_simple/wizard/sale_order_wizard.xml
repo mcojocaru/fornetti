@@ -27,8 +27,9 @@
                 <form string="Produse">
                     <group>
                         <group>
-                            <field name="current_cash_amount" string="Rest Casa"/>
-                            <field name="amount_prev_day" string="Marfa Coapta ziua anterioara"/>
+                            <field name="current_cash_amount" string="Rest Casa" readonly="1"/>
+                            <field name="amount_prev_day" string="Marfa coapta ziua anterioara"/>
+                            <field name="amount_today" string="Marfa Coapta astazi"/>
                             <field name="user_id" invisible="1"/>
                             <field name="profile_id" invisible="1"/>
                             <field name="order_id" invisible="1"/>
