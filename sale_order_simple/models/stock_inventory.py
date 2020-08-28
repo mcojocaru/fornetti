@@ -14,17 +14,18 @@ class Inventory(models.Model):
             obj.diff_lines = obj.line_ids.filtered(lambda l: l.difference_qty != 0)
 
     def action_validate(self):
-        if self.diff_lines:
-            self.send_email()
-
+        res = super(Inventory, self).action_validate()
         has_fornetti_group = self.env.user.has_group('sale_order_simple.fornetti_group')
+        if self.diff_lines and has_fornetti_group:
+                self.send_email()
+
         if has_fornetti_group:
             self.env.user.profile_id.flow_state = 'unlocked'
-        return super(Inventory, self).action_validate()
+        return res
 
     def send_email(self):
         self.ensure_one()
-        template = self.env['mail.template'].browse(16)
+        template = self.env.ref('sale_order_simple.email_template_edi_inventory_notification')
         template.sudo().send_mail(self.id)
 
 class InventoryLine(models.Model):

@@ -22,6 +22,7 @@
         'data/data.xml',
         'data/data_categories.xml',
         'data/data_unbild.xml',
+        'data/data_email.xml',
         'views/main.xml',
         ],
     'qweb': [

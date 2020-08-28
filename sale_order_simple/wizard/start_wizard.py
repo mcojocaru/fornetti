@@ -38,7 +38,7 @@ class StartWizard(models.Model):
         products = self.env.user.profile_id.product_ids.sorted(lambda l: l.sequence).mapped('product_id')
         inventory.product_ids = [(6, 0, products.ids)]
         action = inventory.action_start()
-        #action['target'] = "new"
+        action['context'] = {'active_id': inventory.id, 'active_model': 'stock.inventory'}
         return action
 
     def start_sale(self):

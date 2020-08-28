@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data noupdate="1">
+
+        <record id="email_template_edi_inventory_notification" model="mail.template">
+            <field name="name">Notificare Inventar</field>
+            <field name="model_id" ref="stock.model_stock_inventory"/>
+            <field name="subject">Diferente inventar  ${object.date}: ${object.company_id.name}</field>
+            <field name="email_from">${(user.email_formatted or user.email_formatted) | safe}</field>
+            <field name="email_to">fornetti@florin.com</field>
+            <field name="body_html" type="html">
+<div style="margin:0px;padding: 0px;">
+    <p><strong>Utilizator: ${user.name}</strong></p>
+    <p style="padding:0px;font-size: 13px;">
+        % set diff_product_lines = object.diff_lines
+<div style="width: 550px; border: 1px solid black;">
+    <div style="display: inline-block; margin-top: 5px; width: 200px;"><strong>Nume Produs</strong></div>
+    <div style="display: inline-block; margin-top: 5px; width: 80px;"><strong>Cantitate Initiala</strong></div>
+    <div style="display: inline-block; margin-top: 5px; width: 80px;;"><strong>Cantitate Actualizata</strong></div>
+    <div style="display: inline-block; margin-top: 5px; width: 150px; max-width: 150px;"><strong>Diferenta: Initiala - Actualizata</strong></div>
+</div>
+
+        % for line in diff_product_lines:
+<div style="width: 550px;">
+    <div style="display: inline-block; padding-top: 5px; width: 200px; border: 1px solid black;">${line.product_id.name}</div>
+    <div style="display: inline-block; padding-top: 5px; width: 80px; border: 1px solid black;">${line.theoretical_qty}</div>
+    <div style="display: inline-block; padding-top: 5px; width: 80px; border: 1px solid black;">${line.product_qty}</div>
+    <div style="display: inline-block; padding-top: 5px; width: 150px; min-width: 150px; max-width: 150px; border: 1px solid black;">${round(line.difference_qty,2)}</div>
+</div>
+% endfor
+        <br/>
+    </p>
+</div>
+            </field>
+            <field name="report_template" ref="stock.action_report_inventory"/>
+            <field name="report_name">${(object.name or '').replace('/','_')}</field>
+            <field name="lang"></field>
+            <field name="user_signature" eval="False"/>
+            <field name="auto_delete" eval="True"/>
+        </record>
+
+    </data>
+</openerp>
