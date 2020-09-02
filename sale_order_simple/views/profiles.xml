@@ -2,6 +2,16 @@
 <openerp>
     <data>
 
+        <record id="view_company_form" model="ir.ui.view">
+            <field name="name">Company</field>
+            <field name="model">res.company</field>
+            <field name="inherit_id" ref="base.view_company_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='website']" position="after">
+                    <field name="amount_prev_day" string="Marfa coapta ziua anterioara"/>
+                </xpath>
+            </field>
+        </record>
         <!--  -->
         <record id="user_profile_tree_view" model="ir.ui.view">
             <field name="name">Profile Utilizatori</field>
@@ -10,9 +20,11 @@
                 <tree string="Profile">
                     <field name="name"/>
                     <field name="user_id"/>
+                    <field name="company_id" string="Companie"/>
                     <field name="so_partner_id" context="{'res_partner_search_mode': 'customer'}"/>
                     <field name="po_partner_id" context="{'res_partner_search_mode': 'supplier'}"/>
                     <field name="warehouse_id"/>
+                    <field name="current_cash_amount" string="Cash"/>
                 </tree>
             </field>
         </record>
@@ -27,9 +39,9 @@
                         <group>
                             <field name="name"/>
                             <field name="user_id"/>
-                            <field name="amount_prev_day" string="Marfa coapta ziua anterioara"/>
+                            <field name="company_id" string="Companie"/>
+                            <field name="amount_prev_day" string="Marfa coapta ziua anterioara" readonly="1"/>
                             <field name="current_cash_amount" string="Cash"/>
-
                         </group>
                         <group>
                             <field name="so_partner_id" context="{'res_partner_search_mode': 'customer'}"/>

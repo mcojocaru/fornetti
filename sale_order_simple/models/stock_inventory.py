@@ -20,7 +20,7 @@ class Inventory(models.Model):
                 self.send_email()
 
         if has_fornetti_group:
-            self.env.user.profile_id.flow_state = 'unlocked'
+            self.env.user.profile_id.flow_state = 'input_output'
         return res
 
     def send_email(self):

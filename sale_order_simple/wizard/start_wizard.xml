@@ -28,15 +28,15 @@
                     <div class="oe_button_box" style="text-align: center !important;" name="button_box">
                         <button string="Start Inventar" style="border: 1px solid;"
                                 class="oe_stat_button"
-                                icon="fa-random" name="start_inventory" type="object" attrs="{'invisible': [('flow_state', '=', 'unlocked')]}"/>
+                                icon="fa-random" name="start_inventory" type="object" attrs="{'invisible': [('flow_state', '!=', 'inventory')]}"/>
                         <button string="Vanzare" style="border: 1px solid; margin-left: 10px;"
                                 class="oe_stat_button"
                                 icon="fa-cubes" name="start_sale" type="object"
-                                attrs="{'invisible': [('flow_state', '=', 'locked')]}"/>
+                                attrs="{'invisible': [('flow_state', 'in', ('inventory', 'input_only'))]}"/>
                         <button string="Intrare" style="border: 1px solid; margin-left: 10px;"
                                 class="oe_stat_button"
                                 icon="fa-th-list" name="start_purchase" type="object"
-                                attrs="{'invisible': [('flow_state', '=', 'locked')]}"/>
+                                attrs="{'invisible': [('flow_state', '=', 'inventory')]}"/>
                     </div>
                 </form>
             </field>

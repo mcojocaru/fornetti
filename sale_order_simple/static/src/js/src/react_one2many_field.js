@@ -23,7 +23,7 @@ odoo.define('sale_order_simple.widgets', function (require) {
 
           valueChangedHandler = (event) => {
               if (! isNaN(event.target.value)) {
-                  if (parseFloat(event.target.value || '0') <= parseFloat(this.props.line.free_qty)) {
+                  if (parseFloat(event.target.value || '0') <= parseFloat(this.props.line.qty_available)) {
                       this.setState({qty : event.target.value});
                       this.props.changed(event, this.props.index);
                   }
@@ -33,7 +33,7 @@ odoo.define('sale_order_simple.widgets', function (require) {
           render() {
                 return <tr>
                         <td>{this.props.line.product_name}</td>
-                        <td>{this.props.line.free_qty}</td>
+                        <td>{this.props.line.qty_available}</td>
                         <td><input type="text" value={this.state.qty} onChange={this.valueChangedHandler.bind(this)}/></td>
                         <td>{this.props.line.sold_qty}</td>
                         <td>{this.props.line.is_section? this.props.line.sold_qty_adjusted: ''}</td>

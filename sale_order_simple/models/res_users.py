@@ -3,22 +3,34 @@
 
 from odoo import api, fields, models, _
 
+
+class Company(models.Model):
+    _inherit = 'res.company'
+
+    amount_prev_day = fields.Float(string='Amount Previous Day', default=0.0)
+
+
 class Profile(models.Model):
     _name = 'sale_order_simple.user_profile'
-    
-    name = fields.Char('Name', required=True)
-    user_id = fields.Many2one('res.users', string="User")
-    current_cash_amount = fields.Float(related='user_id.current_cash_amount', readonly=False)
-    amount_prev_day = fields.Float(related='user_id.amount_prev_day', readonly=False)
 
-    flow_state = fields.Selection(selection=[('locked', 'Locked'), ('unlocked', 'Unlocked')], string="Flow State", default='locked')
+    name = fields.Char('Name', required=True)
+    company_id = fields.Many2one('res.company', string='Company', required=True)
+    user_id = fields.Many2one('res.users', string="User")
+    amount_prev_day = fields.Float(related='company_id.amount_prev_day', readonly=False)
+    current_cash_amount = fields.Float(related="user_id.current_cash_amount", readonly=False)
+
+    flow_state = fields.Selection(selection=[('inventory', 'Inventar'), ('input_output', 'Intrare si Vanzare'), ('input_only', 'Doar Intrare')], string="Flow State", default='inventory')
 
     so_partner_id = fields.Many2one('res.partner', string='Customer', required=True)
     po_partner_id = fields.Many2one('res.partner', string='Supplier', required=True)
-    warehouse_id = fields.Many2one('stock.warehouse', string='Warehouse', required=True)
+    warehouse_id = fields.Many2one('stock.warehouse', string='Warehouse', readonly=True)
     sale_product_list_id = fields.Many2one('sale_order_simple.sale_product_list', string='Sale Product List', required=True)
     product_ids = fields.One2many(related='sale_product_list_id.product_ids', string="Products")
     expense_product_ids = fields.One2many(related='sale_product_list_id.expense_product_ids', string="Expeses")
+
+    @api.onchange('company_id')
+    def onchange_company_id(self):
+        self.warehouse_id = self.env['stock.warehouse'].search([('company_id', '=', self.company_id.id)])
 
 class SaleProductList(models.Model):
     _name = 'sale_order_simple.sale_product_list'
@@ -45,8 +57,8 @@ class ResUsers(models.Model):
     _inherit = 'res.users'
 
     profile_id = fields.Many2one('sale_order_simple.user_profile', string='Profile', compute='_compute_profile')
-    current_cash_amount = fields.Float('Current Cash Amount', default=0.0)
-    amount_prev_day = fields.Float(string='Amount Previous Day', default = 0.0)
+    current_cash_amount = fields.Float(string='Cash', default = 0.0)
+    amount_prev_day = fields.Float(related='profile_id.amount_prev_day')
 
     def _compute_profile(self):
         for user in self:

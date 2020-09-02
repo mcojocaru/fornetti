@@ -42,7 +42,9 @@ class StartWizard(models.Model):
         return action
 
     def start_sale(self):
-        return self.env['sale_order_simple.wizard'].create_wizard()
+        action = self.env['sale_order_simple.wizard'].create_wizard()
+        return action
+
 
     def start_purchase(self):
         return self.env['sale_order_simple.purchase_wizard'].create_wizard()

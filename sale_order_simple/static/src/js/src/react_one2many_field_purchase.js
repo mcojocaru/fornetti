@@ -21,12 +21,12 @@ odoo.define('sale_order_simple.purchase_widgets', function (require) {
             this.state = {qty: this.props.qty};
           }
 
-          static getDerivedStateFromProps(props, state) {
-             if (props.qty === 0) {
-                 state.qty = props.qty;
-             }
-             return state;
-          }
+//          static getDerivedStateFromProps(props, state) {
+//             if (props.qty === 0) {
+//                 state.qty = props.qty;
+//             }
+//             return state;
+//          }
 
           valueChangedHandler = (event) => {
               if (! isNaN(event.target.value)) {
@@ -38,7 +38,7 @@ odoo.define('sale_order_simple.purchase_widgets', function (require) {
           render() {
                 return <tr>
                         <td>{this.props.line.product_name}</td>
-                        <td><input type="text" disabled={this.props.line.disabled == true} value={this.state.qty} onChange={this.valueChangedHandler.bind(this)}/></td>
+                        <td><input type="text" disabled={this.props.line.disabled == true} value={this.props.line.disabled ? 0 : this.state.qty} onChange={this.valueChangedHandler.bind(this)}/></td>
                         <td>{this.props.line.price_unit}</td>
                         <td>{this.props.line.product_uom_name}</td>
                         <td>{this.props.line.uom_po_qty_name}</td>

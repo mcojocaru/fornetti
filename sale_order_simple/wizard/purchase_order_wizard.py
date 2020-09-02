@@ -77,6 +77,7 @@ class PurchaseOrderWizard(models.Model):
             'res_id': res_id.id,
             'views': [(form_view.id, 'form'), ],
             'type': 'ir.actions.act_window',
+            'context': {'active_model': self._name, 'active_ids': res_id.ids, 'active_id': res_id.id},
             'target': 'new'
         }
 
@@ -203,8 +204,7 @@ class PurchaseOrderWizard(models.Model):
         invoice = self.env['account.move'].create({'type': 'in_invoice',
                                                    'company_id': self.order_id.company_id.id,
                                                    'partner_id': self.order_id.partner_id.id,
-                                                   'invoice_origin': self.order_id.name,
-                                                   'ref': self.order_id.partner_ref})
+                                                   'invoice_origin': self.order_id.name})
         invoice.purchase_id = self.order_id
         invoice._onchange_purchase_auto_complete()
 
@@ -223,12 +223,12 @@ class PurchaseOrderWizard(models.Model):
 
         mv_lines = self.env['account.move']._move_autocomplete_invoice_lines_create(mv_lines)
         invoice.invoice_line_ids = [(0, 0, mv_dict) for mv_dict in mv_lines]
-
+        invoice.ref = self.supplier_invoice_number
         invoice.action_post()
-        if invoice.is_inbound():
-            domain = [('payment_type', '=', 'inbound')]
-        else:
-            domain = [('payment_type', '=', 'outbound')]
+        # if invoice.is_inbound():
+        #     domain = [('payment_type', '=', 'inbound')]
+        # else:
+        #     domain = [('payment_type', '=', 'outbound')]
 
         # payment = self.env['account.payment'].with_context(active_id=invoice.id, active_model='account.move').create({
         #     'journal_id': self.env['account.journal'].search(

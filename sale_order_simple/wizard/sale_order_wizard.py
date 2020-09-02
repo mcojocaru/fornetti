@@ -22,7 +22,7 @@ class SaleOrderWizard(models.Model):
     company_id = fields.Many2one(related="order_id.company_id", default=None)
     state = fields.Selection(related="order_id.state", default=None)
     amount_prev_day = fields.Float(string='Amount Previous Day', default = 0.0, readonly=True)
-    amount_today = fields.Float(string='Amount Previous Day', default=0.0)
+    amount_today = fields.Float(string='Amount Current Day', default=0.0)
     current_cash_amount = fields.Float('Current Cash Amount', related='user_id.current_cash_amount')
     wiz_line = fields.One2many('sale_order_simple.wizard_line', 'wizard_id', string="Product List", default=None)
     currency_id = fields.Many2one(related='order_id.currency_id', string='Currency', readonly=True, default=None)
@@ -35,10 +35,10 @@ class SaleOrderWizard(models.Model):
     amount_tax = fields.Monetary(string="Amount Tax", compute="_compute_amount_all", default=0)
     amount_total = fields.Monetary(string="Amount Total", compute="_compute_amount_all", default=0)
 
-    @api.depends('wiz_line.price_subtotal', 'wiz_line_expenses.price_total')
+    @api.depends('wiz_line.price_subtotal', 'wiz_line_expenses.price_total', 'amount_today')
     def _compute_amount_all(self):
         self.order_id._amount_all()
-        self.amount_total = self.current_cash_amount + self.order_id.amount_total + self.amount_prev_day
+        self.amount_total = self.current_cash_amount + self.order_id.amount_total + self.amount_prev_day - self.amount_today
         self.amount_sale_total = _round(sum([sl.price_total for sl in self.order_id.order_line.filtered(
             lambda l: l.product_id in self.profile_id.product_ids.mapped('product_id'))]))
 
@@ -57,6 +57,7 @@ class SaleOrderWizard(models.Model):
             'res_id': res_id.id,
             'views': [(form_view.id, 'form'), ],
             'type': 'ir.actions.act_window',
+            'context': {'active_model': self._name, 'active_ids': res_id.ids, 'active_id': res_id.id},
             'target': 'new'
         }
 
@@ -69,7 +70,7 @@ class SaleOrderWizard(models.Model):
                 'order_line_id': wiz_line.order_line_id.id,
                 'product_id': wiz_line.product_id.id,
                 'product_name': wiz_line.order_line_id.name,
-                'free_qty': wiz_line.product_id.free_qty,
+                'qty_available': wiz_line.product_id.qty_available,
                 'sold_qty': _round(wiz_line.sold_qty),
                 'sold_qty_adjusted': _round(wiz_line.sold_qty_adjusted),
                 'product_uom': wiz_line.product_uom.id,
@@ -165,24 +166,24 @@ class SaleOrderWizard(models.Model):
                     'order_line_id': so_line.id,
                     'product_id': so_line.product_id.id,
                     'product_name': so_line.product_id.name,
-                    'free_qty': product_line.product_id.free_qty,
+                    'qty_available': product_line.product_id.qty_available,
                     'sold_qty': 0,
                     'sold_qty_adjusted': 0,
                     'product_uom': so_line.product_uom.id,
                     'product_uom_name': so_line.product_uom.name,
-                    'current_qty': product_line.product_id.free_qty,
+                    'current_qty': product_line.product_id.qty_available,
                     'price_unit': so_line.price_unit,
                     'price_unit_initial': so_line.price_unit,
                     'is_section': False,
                 }
-                current_qty_section += product_line.product_id.free_qty
+                current_qty_section += product_line.product_id.qty_available
             else:
                 wiz_line = {
                     'wizard_id': wiz_id.id,
                     'order_line_id': so_line.id,
                     'product_id': so_line.product_id.id,
                     'product_name': so_line.name,
-                    'free_qty': 0,
+                    'qty_available': 0,
                     'product_uom': so_line.product_uom.id,
                     'product_uom_name': so_line.product_uom.name,
                     'current_qty': current_qty_section,
@@ -223,29 +224,36 @@ class SaleOrderWizard(models.Model):
                 'price_unit': self.amount_prev_day
             })
 
-        self.order_id.action_confirm()
+        self.order_id.with_context(active_id=self.id, active_model='sale.order').action_confirm()
         self.order_id.picking_ids.action_assign()
         for pick in self.order_id.picking_ids:
             wiz = self.env['stock.immediate.transfer'].create({'pick_ids': [(4, pick.id)]})
             wiz.process()
         self.user_id.current_cash_amount = self.amount_total
-        self.user_id.amount_prev_day = self.amount_today
+        self.profile_id.company_id.amount_prev_day = self.amount_today
 
         invoice = self.order_id._create_invoices()
         if invoice:
-            invoice[0].action_post()
+            invoice[0].with_context(active_ids=[invoice[0].id],active_model='account.move', active_id=invoice[0].id).action_post()
             if invoice[0].is_inbound():
                 domain = [('payment_type', '=', 'inbound')]
             else:
                 domain = [('payment_type', '=', 'outbound')]
 
-            payment = self.env['account.payment'].with_context(active_id=invoice[0].id, active_model='account.move').create({
-                'journal_id': self.env['account.journal'].search(
-                [('company_id', '=', invoice[0].company_id.id), ('type', '=', 'cash')], limit=1).id,
-                'payment_method_id': self.env['account.payment.method'].search(domain, limit=1).id
-            })
+            pm_id = self.env['account.payment.method'].search(domain, limit=1)
+            journal_id = self.env['account.journal'].search(
+                [('company_id', '=', invoice[0].company_id.id), ('type', '=', 'cash')], limit=1)
 
+            payment = self.env['account.payment'].with_context(active_ids=[invoice[0].id], active_model='account.move',
+                                                               active_id=self.id).create(
+                {'journal_id': journal_id.id, 'payment_method_id': pm_id.id, 'payment_type': 'inbound'})
             payment.post()
+
+        has_fornetti_group = self.env.user.has_group('sale_order_simple.fornetti_group')
+        if has_fornetti_group:
+            self.env.user.profile_id.flow_state = 'input_only'
+
+
 
     def cancel(self):
         self.order_id.unlink()
@@ -293,7 +301,7 @@ class SaleOrderWizardLine(models.Model):
     currency_id = fields.Many2one(related='order_line_id.currency_id')
     product_id = fields.Many2one(related='order_line_id.product_id')
     product_name = fields.Char('Product Name')
-    free_qty = fields.Float(related='product_id.free_qty')
+    qty_available = fields.Float(related='product_id.qty_available')
     current_qty = fields.Float(string="Product Qty", default=0.0)
     sold_qty = fields.Float(string="Sold Qty", compute='update_sold_qty')
     sold_qty_adjusted = fields.Float(string="Sold Qty Adjusted", compute='update_sold_qty')
@@ -310,10 +318,10 @@ class SaleOrderWizardLine(models.Model):
         ratio = 1 - float(self.env['ir.config_parameter'].get_param('fornetti.product_loss_ratio'))
         for line in self:
             if not (line.is_section or line.product_uom == self.env.ref('uom.product_uom_unit')):
-                line.sold_qty_adjusted =  _round(ratio * (line.free_qty - line.current_qty))
+                line.sold_qty_adjusted =  _round(ratio * (line.qty_available - line.current_qty))
             else:
-                line.sold_qty_adjusted = _round(line.free_qty - line.current_qty)
-            line.sold_qty = _round(line.free_qty - line.current_qty)
+                line.sold_qty_adjusted = _round(line.qty_available - line.current_qty)
+            line.sold_qty = _round(line.qty_available - line.current_qty)
 
     def update_price_total(self):
         for line in self:
@@ -324,7 +332,7 @@ class SaleOrderWizardLine(models.Model):
                     line.order_line_id.tax_id, line.order_line_id.company_id)
                 if line.product_uom != self.env.ref('uom.product_uom_unit'):
                     line.order_line_id.price_unit = ratio * price_unit
-                line.order_line_id.product_uom_qty = line.free_qty - line.current_qty
+                line.order_line_id.product_uom_qty = line.qty_available - line.current_qty
                 line.order_line_id._compute_amount()
                 line.price_total = _round(line.order_line_id.price_total)
                 line.price_subtotal = _round(line.order_line_id.price_subtotal)
