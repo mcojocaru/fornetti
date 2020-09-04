@@ -30,7 +30,7 @@ odoo.define('sale_order_simple.widgets', function (require) {
 
             _this.valueChangedHandler = function (event) {
                 if (!isNaN(event.target.value)) {
-                    if (parseFloat(event.target.value || '0') <= parseFloat(_this.props.line.free_qty)) {
+                    if (parseFloat(event.target.value || '0') <= parseFloat(_this.props.line.qty_available)) {
                         _this.setState({ qty: event.target.value });
                         _this.props.changed(event, _this.props.index);
                     }
@@ -55,7 +55,7 @@ odoo.define('sale_order_simple.widgets', function (require) {
                     React.createElement(
                         'td',
                         null,
-                        this.props.line.free_qty
+                        this.props.line.qty_available
                     ),
                     React.createElement(
                         'td',

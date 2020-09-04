@@ -39,6 +39,13 @@ odoo.define('sale_order_simple.purchase_widgets', function (require) {
             return _this;
         }
 
+        //          static getDerivedStateFromProps(props, state) {
+        //             if (props.qty === 0) {
+        //                 state.qty = props.qty;
+        //             }
+        //             return state;
+        //          }
+
         _createClass(TableRow, [{
             key: 'render',
             value: function render() {
@@ -53,7 +60,7 @@ odoo.define('sale_order_simple.purchase_widgets', function (require) {
                     React.createElement(
                         'td',
                         null,
-                        React.createElement('input', { type: 'text', disabled: this.props.line.disabled == true, value: this.state.qty, onChange: this.valueChangedHandler.bind(this) })
+                        React.createElement('input', { type: 'text', disabled: this.props.line.disabled == true, value: this.props.line.disabled ? 0 : this.state.qty, onChange: this.valueChangedHandler.bind(this) })
                     ),
                     React.createElement(
                         'td',
@@ -76,14 +83,6 @@ odoo.define('sale_order_simple.purchase_widgets', function (require) {
                         this.props.line.price_total
                     )
                 );
-            }
-        }], [{
-            key: 'getDerivedStateFromProps',
-            value: function getDerivedStateFromProps(props, state) {
-                if (props.qty === 0) {
-                    state.qty = props.qty;
-                }
-                return state;
             }
         }]);
 
