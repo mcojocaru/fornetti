@@ -66,7 +66,7 @@ class PurchaseOrderWizard(models.Model):
 
     @api.model
     def create_wizard(self):
-        res_id = self.create({'partner_id':self.env.user.profile_id.po_partner_id.id })
+        res_id = self.create({'partner_id':self.env.user.profile_id.po_partner_id.id, 'supplier_invoice_number': "" })
         lines = self.create_wiz_lines(res_id)
         res_id.lines_json1 = res_id.lines_json2 = json.dumps(lines)
 
