@@ -7,7 +7,7 @@ from odoo import api, fields, models, _
 class Company(models.Model):
     _inherit = 'res.company'
 
-    amount_prev_day = fields.Float(string='Amount Previous Day', default=0.0)
+    amount_prev_day = fields.Float(string='Amount Previous Day', default=0.0, tracking=True)
 
 
 class Profile(models.Model):
@@ -57,7 +57,7 @@ class ResUsers(models.Model):
     _inherit = 'res.users'
 
     profile_id = fields.Many2one('sale_order_simple.user_profile', string='Profile', compute='_compute_profile')
-    current_cash_amount = fields.Float(string='Cash', default = 0.0)
+    current_cash_amount = fields.Float(string='Cash', default = 0.0, tracking=True)
     amount_prev_day = fields.Float(related='profile_id.amount_prev_day')
 
     def _compute_profile(self):

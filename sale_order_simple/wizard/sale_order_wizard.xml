@@ -48,7 +48,7 @@
                         <field name="amount_sale_total" string="Total Vanzari"/>
                     </group>
                     <separator/>
-                    <field name="wiz_line_expenses">
+                    <field name="wiz_line_expenses" options="{'no_create': True, 'no_delete': True}">
                         <tree editable="bottom">
                             <field name="product_id"/>
                             <field name="amount"/>

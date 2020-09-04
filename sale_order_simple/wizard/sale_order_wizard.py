@@ -223,6 +223,17 @@ class SaleOrderWizard(models.Model):
                 'product_uom_qty': 1,
                 'price_unit': self.amount_prev_day
             })
+        so_line.tax_id = [(6, 0, [])]
+
+        so_line = self.env['sale.order.line'].with_context(round=True).create(
+            {
+                'name': self.env.ref('sale_order_simple.product_amount_baked_today').name,
+                'order_id': self.order_id.id,
+                'product_id': self.env.ref('sale_order_simple.product_amount_baked_today').id,
+                'product_uom_qty': -1,
+                'price_unit': self.amount_today
+            })
+        so_line.tax_id = [(6, 0, [])]
 
         self.order_id.with_context(active_id=self.id, active_model='sale.order').action_confirm()
         self.order_id.picking_ids.action_assign()
@@ -315,7 +326,7 @@ class SaleOrderWizardLine(models.Model):
 
     @api.depends('current_qty')
     def update_sold_qty(self):
-        ratio = 1 - float(self.env['ir.config_parameter'].get_param('fornetti.product_loss_ratio'))
+        ratio = 1 - float(self.env['ir.config_parameter'].sudo().get_param('fornetti.product_loss_ratio'))
         for line in self:
             if not (line.is_section or line.product_uom == self.env.ref('uom.product_uom_unit')):
                 line.sold_qty_adjusted =  _round(ratio * (line.qty_available - line.current_qty))
@@ -326,7 +337,7 @@ class SaleOrderWizardLine(models.Model):
     def update_price_total(self):
         for line in self:
             if not line.is_section:
-                ratio = 1 - float(self.env['ir.config_parameter'].get_param('fornetti.product_loss_ratio'))
+                ratio = 1 - float(self.env['ir.config_parameter'].sudo().get_param('fornetti.product_loss_ratio'))
                 price_unit = self.env['account.tax']._fix_tax_included_price_company(
                     line.order_line_id._get_display_price(line.product_id), line.product_id.taxes_id,
                     line.order_line_id.tax_id, line.order_line_id.company_id)
