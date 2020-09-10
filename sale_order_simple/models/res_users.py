@@ -11,13 +11,14 @@ class Company(models.Model):
 
 
 class Profile(models.Model):
-    _name = 'sale_order_simple.user_profile'
+    _inherit = ['mail.thread']
+    _name = "sale_order_simple.user_profile"
 
     name = fields.Char('Name', required=True)
     company_id = fields.Many2one('res.company', string='Company', required=True)
     user_id = fields.Many2one('res.users', string="User")
     amount_prev_day = fields.Float(related='company_id.amount_prev_day', readonly=False)
-    current_cash_amount = fields.Float(related="user_id.current_cash_amount", readonly=False)
+    current_cash_amount = fields.Float(related="user_id.current_cash_amount", readonly=False, tracking=True)
 
     flow_state = fields.Selection(selection=[('inventory', 'Inventar'), ('input_output', 'Intrare si Vanzare'), ('input_only', 'Doar Intrare')], string="Flow State", default='inventory')
 

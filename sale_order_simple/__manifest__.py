@@ -9,7 +9,7 @@
     'description': """
 """,
     'website': '',
-    'depends': ['l10n_ro', 'sale_stock', 'mrp'],
+    'depends': ['l10n_ro', 'sale_stock', 'mrp', 'hr_expense'],
     'data': [
         'security/ir.model.access.csv',
         'wizard/sale_order_wizard.xml',

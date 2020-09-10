@@ -27,18 +27,29 @@ class SaleOrderWizard(models.Model):
     wiz_line = fields.One2many('sale_order_simple.wizard_line', 'wizard_id', string="Product List", default=None)
     currency_id = fields.Many2one(related='order_id.currency_id', string='Currency', readonly=True, default=None)
 
-    wiz_line_expenses = fields.One2many('sale_order_simple.wizard_line_expense', 'wizard_id', string="Expense List", default=None)
+    expense_sheet_id = fields.Many2one('hr.expense.sheet', string='Expense Sheet')
+    expense_ids = fields.One2many('hr.expense', related='expense_sheet_id.expense_line_ids', readonly=False)
+    total_expenses = fields.Float('Total Expenses', compute="_compute_total_expenses")
 
     amount_sale_total = fields.Monetary(string="Amount Total", compute="_compute_amount_all", default=0)
-
     amount_untaxed = fields.Monetary(string="Amount Untaxed", compute="_compute_amount_all", default=0)
     amount_tax = fields.Monetary(string="Amount Tax", compute="_compute_amount_all", default=0)
     amount_total = fields.Monetary(string="Amount Total", compute="_compute_amount_all", default=0)
 
-    @api.depends('wiz_line.price_subtotal', 'wiz_line_expenses.price_total', 'amount_today')
+    @api.depends('expense_ids.unit_amount')
+    def _compute_total_expenses(self):
+        for exp_line in self.expense_ids:
+            if exp_line.unit_amount > 0:
+                exp_line._origin.unit_amount = exp_line.unit_amount
+        self.expense_ids._compute_amount()
+        self.expense_sheet_id._compute_amount()
+        self.total_expenses = self.expense_sheet_id.total_amount
+
+    @api.depends('wiz_line.price_subtotal', 'total_expenses', 'amount_today')
     def _compute_amount_all(self):
         self.order_id._amount_all()
-        self.amount_total = self.current_cash_amount + self.order_id.amount_total + self.amount_prev_day - self.amount_today
+        self.amount_total = self.current_cash_amount + self.order_id.amount_total + self.amount_prev_day \
+                            - self.amount_today - self.expense_sheet_id.total_amount
         self.amount_sale_total = _round(sum([sl.price_total for sl in self.order_id.order_line.filtered(
             lambda l: l.product_id in self.profile_id.product_ids.mapped('product_id'))]))
 
@@ -122,27 +133,28 @@ class SaleOrderWizard(models.Model):
         section_lines.update_section_line(lines)
 
     def create_wiz_expense_lines(self, wiz_id):
-        lines = []
+        employee_id = self.env['hr.employee'].search([('user_id', '=', self.env.user.id)])
+        if not employee_id:
+            raise Exception(f"Nu exista configurat angajat pentru {self.env.user.name}")
+
+        wiz_id.expense_sheet_id = self.env['hr.expense.sheet'].create({
+            'name': f'Cheltuieli pentru {self.user_id.name}',
+            'employee_id': employee_id.id,
+        })
         for product_line in self.env.user.profile_id.expense_product_ids.sorted(lambda l: l.sequence):
-            so_line = self.env['sale.order.line'].with_context(round=True).create(
-                {
-                    'name': product_line.product_id.name,
-                    'order_id': wiz_id.order_id.id,
-                    'product_id': product_line.product_id.id,
-                    'product_uom_qty': 1,
-                    'price_unit': 0,
-                })
-            so_line.product_id_change()
-            so_line.price_unit = 0
-            wiz_line = {
-                'wizard_id': wiz_id.id,
-                'order_line_id': so_line.id,
-                'product_id': so_line.product_id.id,
-                'currency_id': so_line.currency_id.id
-            }
-            self.env['sale_order_simple.wizard_line_expense'].create(wiz_line)
-            lines.append(wiz_line)
-        return lines
+            expense_line = self.env['hr.expense'].create({
+                'name': product_line.product_id.name,
+                'employee_id': employee_id.id,
+                'product_id': product_line.product_id.id,
+                'unit_amount': 0,
+                'quantity': 1,
+                'tax_ids': [(6, 0, [])],
+                'sheet_id': wiz_id.expense_sheet_id.id,
+                'payment_mode': 'company_account',
+                'company_id': wiz_id.company_id.id,
+            })
+            expense_line._onchange_product_id()
+            expense_line.unit_amount = 0
 
     def create_wiz_lines(self, wiz_id):
         lines = []
@@ -214,7 +226,15 @@ class SaleOrderWizard(models.Model):
         #             'product_qty': qty
         #         })
         #         unbild.sudo().action_validate()
+        self.expense_ids.filtered(lambda exp: exp.unit_amount == 0).unlink()
+        if self.expense_ids.exists():
+            self.expense_sheet_id.action_submit_sheet()
+            self.expense_sheet_id.approve_expense_sheets()
+            self.expense_sheet_id.action_sheet_move_create()
+        else:
+            self.expense_sheet_id.unlink()
 
+        sold_lines =  self.order_id.order_line.filtered(lambda l: l.product_uom_qty > 0)
         so_line = self.env['sale.order.line'].with_context(round=True).create(
             {
                 'name': self.env.ref('sale_order_simple.product_amount_prev_date').name,
@@ -236,7 +256,8 @@ class SaleOrderWizard(models.Model):
         so_line.tax_id = [(6, 0, [])]
 
         self.order_id.with_context(active_id=self.id, active_model='sale.order').action_confirm()
-        self.order_id.picking_ids.action_assign()
+        if sold_lines:
+            self.order_id.picking_ids.action_assign()
         for pick in self.order_id.picking_ids:
             wiz = self.env['stock.immediate.transfer'].create({'pick_ids': [(4, pick.id)]})
             wiz.process()
@@ -264,10 +285,9 @@ class SaleOrderWizard(models.Model):
         if has_fornetti_group:
             self.env.user.profile_id.flow_state = 'input_only'
 
-
-
     def cancel(self):
         self.order_id.unlink()
+        self.expense_sheet_id.unlink()
 
     def dummy(self):
         return {
@@ -360,24 +380,24 @@ class SaleOrderWizardLine(models.Model):
             section_line.price_tax = _round(sum([l.price_tax for l in lines]))
 
 
-class SaleOrderWizardExpLine(models.Model):
-    _name = 'sale_order_simple.wizard_line_expense'
-
-    wizard_id = fields.Many2one('sale_order_simple.wizard', string="Wizard")
-    product_id = fields.Many2one('product.product', string='Prodduct')
-    order_line_id = fields.Many2one('sale.order.line', string="Sale Order Line")
-    currency_id = fields.Many2one(related='order_line_id.currency_id')
-    amount = fields.Float(string="Amount", default=0.0)
-
-    price_total = fields.Monetary(string="Price Total")
-    price_subtotal = fields.Monetary(string="Price Total")
-    price_tax = fields.Monetary(string="Price Total")
-
-    @api.onchange('amount')
-    def update_price_total(self):
-        for line in self:
-            line.order_line_id.write({'price_unit': -line.amount})
-            line.order_line_id._compute_amount()
-            line.price_total = line.order_line_id.price_total
-            line.price_subtotal = line.order_line_id.price_subtotal
-            line.price_tax = line.order_line_id.price_tax
+# class SaleOrderWizardExpLine(models.Model):
+#     _name = 'sale_order_simple.wizard_line_expense'
+#
+#     wizard_id = fields.Many2one('sale_order_simple.wizard', string="Wizard")
+#     product_id = fields.Many2one('product.product', string='Prodduct')
+#     order_line_id = fields.Many2one('sale.order.line', string="Sale Order Line")
+#     currency_id = fields.Many2one(related='order_line_id.currency_id')
+#     amount = fields.Float(string="Amount", default=0.0)
+#
+#     price_total = fields.Monetary(string="Price Total")
+#     price_subtotal = fields.Monetary(string="Price Total")
+#     price_tax = fields.Monetary(string="Price Total")
+#
+#     @api.onchange('amount')
+#     def update_price_total(self):
+#         for line in self:
+#             line.order_line_id.write({'price_unit': -line.amount})
+#             line.order_line_id._compute_amount()
+#             line.price_total = line.order_line_id.price_total
+#             line.price_subtotal = line.order_line_id.price_subtotal
+#             line.price_tax = line.order_line_id.price_tax

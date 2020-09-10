@@ -48,10 +48,13 @@
                         <field name="amount_sale_total" string="Total Vanzari"/>
                     </group>
                     <separator/>
-                    <field name="wiz_line_expenses" options="{'no_create': True, 'no_delete': True}">
+                    <field name="total_expenses" invisible="1"/>
+                    <field name="expense_ids" options="{'no_create': True, 'no_delete': True}">
                         <tree editable="bottom">
-                            <field name="product_id"/>
-                            <field name="amount"/>
+                            <field name="product_id" readonly="1"/>
+                            <field name="unit_amount"/>
+                            <field name="quantity" invisible="1"/>
+                            <field name="state" invisible="1"/>
                         </tree>
                     </field>
                     <group>
