@@ -14,6 +14,7 @@ def _wiz_line_data(wiz_line):
         'product_uom': wiz_line.product_uom.id,
         'product_uom_name': wiz_line.product_uom.name,
         'uom_po_qty_name': wiz_line.uom_po_qty_name,
+        'uom_po_qty_flag': wiz_line.uom_po_qty_flag,
         'current_qty': wiz_line.current_qty,
         'price_unit': wiz_line.price_unit,
         'is_section': wiz_line.is_section,
@@ -45,9 +46,9 @@ class PurchaseOrderWizard(models.Model):
     amount_tax = fields.Monetary(string="Amount Tax", compute="_compute_amount_all", default=0)
     amount_total = fields.Monetary(string="Amount Total", compute="_compute_amount_all", default=0)
 
-    qty_total_bags = fields.Integer(compute='_compute_purchase_qty_bigger')
-    qty_total_bax = fields.Integer(compute='_compute_purchase_qty_bigger')
-    qty_total_box = fields.Integer(compute='_compute_purchase_qty_bigger')
+    qty_total_bags = fields.Float(compute='_compute_purchase_qty_bigger')
+    qty_total_bax = fields.Float(compute='_compute_purchase_qty_bigger')
+    qty_total_box = fields.Float(compute='_compute_purchase_qty_bigger')
 
     def _compute_seller_ids(self):
         self.partner_ids = self.profile_id.product_ids.mapped('product_id.seller_ids.name')
@@ -258,6 +259,7 @@ class PurchaseOrderWizardLine(models.Model):
     product_uom_name = fields.Char(related="product_uom.name")
     uom_po_id = fields.Many2one('uom.uom', string="Comanda")
     uom_po_qty = fields.Float('Cantitate Comanda', compute='_compute_uom_po_qty')
+    uom_po_qty_flag = fields.Float('Difereneta Comanda', compute='_compute_uom_po_qty')
     uom_po_qty_name = fields.Char(compute='_compute_uom_po_qty')
     price_unit = fields.Float(related='order_line_id.price_unit')
     price_total = fields.Monetary(string="Price Total")
@@ -281,12 +283,14 @@ class PurchaseOrderWizardLine(models.Model):
     @api.depends('current_qty')
     def _compute_uom_po_qty(self):
         for line in self:
+            line.uom_po_qty_flag = False
             if not line.is_section:
                 if line.product_id and line.uom_po_id and line.product_uom != line.uom_po_id:
-                    line.uom_po_qty = line.product_uom._compute_quantity(line.current_qty, line.uom_po_id)
+                    line.uom_po_qty = line.product_uom._compute_quantity(line.current_qty, line.uom_po_id, round=False)
+                    line.uom_po_qty_flag = int(line.uom_po_qty) != line.uom_po_qty
                 else:
                     line.uom_po_qty = line.current_qty
-                line.uom_po_qty_name = f'{int(line.uom_po_qty)} {line.uom_po_id and line.uom_po_id.name or line.product_uom.name}'
+                line.uom_po_qty_name = f'{line.uom_po_qty} {line.uom_po_id and line.uom_po_id.name or line.product_uom.name}'
             else:
                 line.uom_po_qty_name = ''
 

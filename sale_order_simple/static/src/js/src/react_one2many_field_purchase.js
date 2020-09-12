@@ -36,12 +36,15 @@ odoo.define('sale_order_simple.purchase_widgets', function (require) {
           }
 
           render() {
+                const style = {
+                     border: this.props.line.uom_po_qty_flag ? '2px solid red': '1px solid #dee2e6',
+                };
                 return <tr>
                         <td>{this.props.line.product_name}</td>
                         <td><input type="text" disabled={this.props.line.disabled == true} value={this.props.line.disabled ? 0 : this.state.qty} onChange={this.valueChangedHandler.bind(this)}/></td>
                         <td>{this.props.line.price_unit}</td>
                         <td>{this.props.line.product_uom_name}</td>
-                        <td>{this.props.line.uom_po_qty_name}</td>
+                        <td style={style}>{this.props.line.uom_po_qty_name}</td>
                         <td>{this.props.line.price_total}</td>
                      </tr>
           }

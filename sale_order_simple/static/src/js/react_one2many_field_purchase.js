@@ -49,6 +49,9 @@ odoo.define('sale_order_simple.purchase_widgets', function (require) {
         _createClass(TableRow, [{
             key: 'render',
             value: function render() {
+                var style = {
+                    border: this.props.line.uom_po_qty_flag ? '2px solid red' : '1px solid #dee2e6'
+                };
                 return React.createElement(
                     'tr',
                     null,
@@ -74,7 +77,7 @@ odoo.define('sale_order_simple.purchase_widgets', function (require) {
                     ),
                     React.createElement(
                         'td',
-                        null,
+                        { style: style },
                         this.props.line.uom_po_qty_name
                     ),
                     React.createElement(
