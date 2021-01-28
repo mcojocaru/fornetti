@@ -24,7 +24,7 @@ class Profile(models.Model):
 
     so_partner_id = fields.Many2one('res.partner', string='Customer', required=True)
     po_partner_id = fields.Many2one('res.partner', string='Supplier', required=True)
-    warehouse_id = fields.Many2one('stock.warehouse', string='Warehouse', readonly=True)
+    warehouse_id = fields.Many2one('stock.warehouse', string='Warehouse', readonly=False)
     sale_product_list_id = fields.Many2one('sale_order_simple.sale_product_list', string='Sale Product List', required=True)
     product_ids = fields.One2many(related='sale_product_list_id.product_ids', string="Products")
     expense_product_ids = fields.One2many(related='sale_product_list_id.expense_product_ids', string="Expeses")
