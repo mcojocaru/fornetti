@@ -27,6 +27,7 @@
         ],
     'qweb': [
         "static/src/js/xml/react_tmpl.xml",
+        "static/src/vue/xml/vue_tmpl.xml",
     ],
     'installable': True,
     'auto_install': False,

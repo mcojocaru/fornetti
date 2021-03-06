@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-     <template id="assets_backend" name="sale_order_simple_widget_assets" inherit_id="web.assets_backend">
+    <template id="assets_backend" name="sale_order_simple_widget_assets" inherit_id="web.assets_backend">
         <xpath expr="." position="inside">
             <link rel="stylesheet" href="/sale_order_simple/static/src/css/fornetti.css"/>
             <script src="https://unpkg.com/react@16/umd/react.production.min.js" crossorigin="1"/>
             <script src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js" crossorigin="1"/>
-            <script type="module" src="/sale_order_simple/static/src/js/react_one2many_field.js"></script>
+             <script src="https://unpkg.com/vue@next"></script>
+<!--            <script type="module" src="/sale_order_simple/static/src/vue/lib/vue.min.js"></script>-->
+            <script type="module" src="/sale_order_simple/static/src/vue/js/vue_one2many_field.js"></script>
             <script type="module" src="/sale_order_simple/static/src/js/react_one2many_field_purchase.js"></script>
+
         </xpath>
     </template>
 </odoo>

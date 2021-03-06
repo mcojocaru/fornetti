@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+
+<t t-name="VueTmpl">
+    <div class="vue_one2many_field">
+        <div class="o_field_value" style="display: none;"/>
+        <div id="vue_root">
+        </div>
+    </div>
+</t>
+</templates>
