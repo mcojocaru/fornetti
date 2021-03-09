@@ -6,6 +6,7 @@ from odoo import api, fields, models, _
 class StartWizard(models.Model):
     _name = 'sale_order_simple.start_wizard'
 
+    name = fields.Char(default='')
     user_id = fields.Many2one('res.users', string='User', default=None)
     profile_id = fields.Many2one('sale_order_simple.user_profile', string='Profile', default=None)
     flow_state = fields.Selection(related='profile_id.flow_state')

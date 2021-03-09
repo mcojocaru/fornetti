@@ -5,6 +5,9 @@ from datetime import timedelta
 from odoo import api, fields, models, _
 import json
 
+def _round(amount):
+    #return tools.float__round(amount, precision_digits=2)
+    return round(amount, 2)
 
 def _wiz_line_data(wiz_line):
     return {
@@ -15,11 +18,11 @@ def _wiz_line_data(wiz_line):
         'product_uom_name': wiz_line.product_uom.name,
         'uom_po_qty_name': wiz_line.uom_po_qty_name,
         'uom_po_qty_flag': wiz_line.uom_po_qty_flag,
-        'current_qty': wiz_line.current_qty,
+        'current_qty': _round(wiz_line.current_qty),
         'price_unit': wiz_line.price_unit,
         'is_section': wiz_line.is_section,
-        'price_total': wiz_line.price_total,
-        'price_subtotal': wiz_line.price_subtotal,
+        'price_total': _round(wiz_line.price_total),
+        'price_subtotal': _round(wiz_line.price_subtotal),
         'subtotal_order_lines': [(6, 0, wiz_line.subtotal_order_lines.ids)],
         'disabled': wiz_line.disabled,
     }
@@ -27,7 +30,7 @@ def _wiz_line_data(wiz_line):
 class PurchaseOrderWizard(models.Model):
     _name = 'sale_order_simple.purchase_wizard'
 
-    supplier_invoice_number = fields.Char('Supplier Invoice Number', required=True)
+    supplier_invoice_number = fields.Char('Numar Factura Furnizor', required=True)
     user_id = fields.Many2one('res.users', string='User', default=None)
     profile_id = fields.Many2one('sale_order_simple.user_profile', string='Profile', default=None)
     partner_id = fields.Many2one('res.partner', string='Supplier')
@@ -286,10 +289,10 @@ class PurchaseOrderWizardLine(models.Model):
             line.uom_po_qty_flag = False
             if not line.is_section:
                 if line.product_id and line.uom_po_id and line.product_uom != line.uom_po_id:
-                    line.uom_po_qty = line.product_uom._compute_quantity(line.current_qty, line.uom_po_id, round=False)
+                    line.uom_po_qty = _round(line.product_uom._compute_quantity(line.current_qty, line.uom_po_id, round=False))
                     line.uom_po_qty_flag = int(line.uom_po_qty) != line.uom_po_qty
                 else:
-                    line.uom_po_qty = line.current_qty
+                    line.uom_po_qty = _round(line.current_qty)
                 line.uom_po_qty_name = f'{line.uom_po_qty} {line.uom_po_id and line.uom_po_id.name or line.product_uom.name}'
             else:
                 line.uom_po_qty_name = ''

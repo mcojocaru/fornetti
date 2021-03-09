@@ -23,7 +23,7 @@
             <field name="name">Start</field>
             <field name="model">sale_order_simple.start_wizard</field>
             <field name="arch" type="xml">
-                <form string="Start" create="false" edit="false">
+                <form string="Start" create="false" edit="false" delete="false">
                     <field name="flow_state" invisible="1"/>
                     <div class="oe_button_box" style="text-align: center !important;" name="button_box">
                         <button string="Start Inventar" style="border: 1px solid;"

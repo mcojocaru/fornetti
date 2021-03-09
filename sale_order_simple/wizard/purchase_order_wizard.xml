@@ -44,7 +44,7 @@
                     </group>
 
                     <field name="lines_json1" invisible="1"/>
-                    <field name="lines_json2" widget="react_one2many_field_purchase" style="width: 100% !important;"/>
+                    <field name="lines_json2" widget="vue_one2many_field_purchase" style="width: 100% !important;"/>
 
                     <br/>
                     <label for="qty_total_bags" string="Pungi:"/><field name="qty_total_bags"/><br/>
