@@ -71,21 +71,21 @@ odoo.define('sale_order_simple.widgets', function(require) {
 					<td :style="{border: err_cell ? '2px solid red': '1px solid #dee2e6'}">
 					   <input type="number" v-model.number="qty"/>
 					</td>
-					<td>{{line.sold_qty}}</td>
-					<td>{{line.is_section? line.sold_qty_adjusted.toFixed(1): ''}}</td>
-					<td>{{line.price_unit}}</td>
-					<td>{{line.product_uom_name}}</td>
-					<td>{{line.is_section? line.price_total.toFixed(1): ''}}</td>
+					<td>{{ line.sold_qty.toFixed(1) }}</td>
+					<td>{{ line.is_section? line.sold_qty_adjusted.toFixed(1): '' }}</td>
+					<td>{{ line.price_unit }}</td>
+					<td>{{ line.product_uom_name }}</td>
+					<td>{{ line.is_section? line.price_total.toFixed(1): '' }}</td>
 				</tr>
 				<tr v-else className="table-primary">
 					<td>{{line.product_name}}</td>
 					<td></td>
-					<td>{{line.current_qty}}</td>
-					<td>{{line.sold_qty}}</td>
-					<td>{{line.sold_qty_adjusted.toFixed(1)}}</td>
+					<td>{{ line.current_qty.toFixed(1) }}</td>
+					<td>{{ line.sold_qty.toFixed(1) }}</td>
+					<td>{{ line.sold_qty_adjusted.toFixed(1) }}</td>
 					<td></td>
 					<td></td>
-					<td>{{line.price_total}}</td>
+					<td>{{ line.price_total.toFixed(1) }}</td>
 				</tr>
 			`,
 			data() {
