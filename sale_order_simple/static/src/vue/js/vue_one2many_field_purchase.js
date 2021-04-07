@@ -100,7 +100,8 @@ odoo.define('sale_order_simple.purchase_widgets', function (require) {
 				  } else {
 					  this.line.current_qty = 0;
 				  }
-				  this.emit_lazy_qty_changed();
+				  //this.emit_lazy_qty_changed();
+				  this.$emit("qty-changed")
 				}
 			},
 			methods: {
