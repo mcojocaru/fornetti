@@ -69,7 +69,7 @@ odoo.define('sale_order_simple.widgets', function(require) {
 					<td>{{line.product_name}}</td>
 					<td>{{line.qty_available}}</td>
 					<td :style="{border: err_cell ? '2px solid red': '1px solid #dee2e6'}">
-					   <input type="number" v-model="qty"/>
+					   <input type="number" v-model.number="qty"/>
 					</td>
 					<td>{{line.sold_qty}}</td>
 					<td>{{line.is_section? line.sold_qty_adjusted: ''}}</td>
@@ -91,6 +91,7 @@ odoo.define('sale_order_simple.widgets', function(require) {
 			data() {
 				return {
 					qty: this.line.qty,
+					time_out: null
 				}
 			},
 			watch: {
@@ -118,13 +119,20 @@ odoo.define('sale_order_simple.widgets', function(require) {
 							}
 						}
 				  }
-				  this.$emit('qty-changed');
+				  //this.$emit('qty-changed');
+				  this.emit_lazy_qty_changed();
 				}
 			},
 			methods: {
-				emit_lazy_qty_changed: _.debounce(function(){
-					this.$emit("qty-changed");
-				}, 1000)
+//				emit_lazy_qty_changed: _.debounce(function(){
+//					this.$emit("qty-changed");
+//				}, 1000)
+                emit_lazy_qty_changed(){
+                    if (this.time_out) {
+                        clearTimeout(this.time_out);
+                    }
+                    this.time_out = setTimeout(() => this.$emit("qty-changed"), 700);
+				}
 			},
 			computed: {
 				err_cell() {

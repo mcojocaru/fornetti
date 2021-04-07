@@ -68,8 +68,8 @@ odoo.define('sale_order_simple.purchase_widgets', function (require) {
 					:key="line.order_line_id">
 					<td>{{line.product_name}}</td>
 					<td>
-					   <input v-if="line.disabled" type="number" disabled v-model="qty"/>
-					   <input v-else type="number" v-model="qty"/>
+					   <input v-if="line.disabled" type="number" disabled v-model.number="qty"/>
+					   <input v-else type="number" v-model.number="qty"/>
 					</td>
 					<td>{{line.price_unit}}</td>
 					<td>{{line.product_uom_name}}</td>
@@ -90,6 +90,7 @@ odoo.define('sale_order_simple.purchase_widgets', function (require) {
 			data() {
 				return {
 					qty: this.line.current_qty,
+					time_out: null
 				}
 			},
 			watch: {
@@ -99,13 +100,16 @@ odoo.define('sale_order_simple.purchase_widgets', function (require) {
 				  } else {
 					  this.line.current_qty = 0;
 				  }
-				  this.$emit('qty-changed');
+				  this.emit_lazy_qty_changed();
 				}
 			},
 			methods: {
-				emit_lazy_qty_changed: _.debounce(function(){
-					this.$emit("qty-changed");
-				}, 1000)
+				emit_lazy_qty_changed(){
+                    if (this.time_out) {
+                        clearTimeout(this.time_out);
+                    }
+                    this.time_out = setTimeout(() => this.$emit("qty-changed"), 700);
+				}
 			}
 		});
 		return vue_app;
