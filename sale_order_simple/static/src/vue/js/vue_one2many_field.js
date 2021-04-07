@@ -75,7 +75,7 @@ odoo.define('sale_order_simple.widgets', function(require) {
 					<td>{{ line.is_section? line.sold_qty_adjusted.toFixed(1): '' }}</td>
 					<td>{{ line.price_unit }}</td>
 					<td>{{ line.product_uom_name }}</td>
-					<td>{{ line.is_section? line.price_total.toFixed(1): '' }}</td>
+					<td>{{ line.is_section? line.price_total && line.price_total.toFixed(1): '' }}</td>
 				</tr>
 				<tr v-else className="table-primary">
 					<td>{{line.product_name}}</td>
@@ -85,7 +85,7 @@ odoo.define('sale_order_simple.widgets', function(require) {
 					<td>{{ line.sold_qty_adjusted.toFixed(1) }}</td>
 					<td></td>
 					<td></td>
-					<td>{{ line.price_total.toFixed(1) }}</td>
+					<td>{{ line.price_total && line.price_total.toFixed(1) }}</td>
 				</tr>
 			`,
 			data() {
