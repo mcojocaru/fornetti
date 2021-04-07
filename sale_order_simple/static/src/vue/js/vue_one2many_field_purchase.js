@@ -108,7 +108,7 @@ odoo.define('sale_order_simple.purchase_widgets', function (require) {
                     if (this.time_out) {
                         clearTimeout(this.time_out);
                     }
-                    this.time_out = setTimeout(() => this.$emit("qty-changed"), 700);
+                    this.time_out = setTimeout(() => this.$emit("qty-changed"), 1000);
 				}
 			}
 		});

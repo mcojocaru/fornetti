@@ -67,7 +67,7 @@ odoo.define('sale_order_simple.widgets', function(require) {
 			template: `
 				<tr v-if="!line.is_section">
 					<td>{{line.product_name}}</td>
-					<td>{{line.qty_available}}</td>
+					<td>{{line.qty_available.toFixed(1)}}</td>
 					<td :style="{border: err_cell ? '2px solid red': '1px solid #dee2e6'}">
 					   <input type="number" v-model.number="qty"/>
 					</td>
@@ -131,7 +131,7 @@ odoo.define('sale_order_simple.widgets', function(require) {
                     if (this.time_out) {
                         clearTimeout(this.time_out);
                     }
-                    this.time_out = setTimeout(() => this.$emit("qty-changed"), 700);
+                    this.time_out = setTimeout(() => this.$emit("qty-changed"), 1000);
 				}
 			},
 			computed: {
