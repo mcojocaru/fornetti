@@ -153,7 +153,7 @@ class SaleOrderWizard(models.Model):
                 'payment_mode': 'company_account',
                 'company_id': wiz_id.company_id.id,
             })
-            expense_line._onchange_product_id()
+            expense_line._onchange_product_id_date_account_id()
             expense_line.unit_amount = 0
 
     def create_wiz_lines(self, wiz_id):
@@ -279,7 +279,7 @@ class SaleOrderWizard(models.Model):
             payment = self.env['account.payment'].with_context(active_ids=[invoice[0].id], active_model='account.move',
                                                                active_id=self.id).create(
                 {'journal_id': journal_id.id, 'payment_method_id': pm_id.id, 'payment_type': 'inbound'})
-            payment.post()
+            payment.action_post()
 
         has_fornetti_group = self.env.user.has_group('sale_order_simple.fornetti_group')
         if has_fornetti_group:

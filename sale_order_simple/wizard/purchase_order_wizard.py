@@ -201,32 +201,18 @@ class PurchaseOrderWizard(models.Model):
         self.order_id.partner_ref = self.supplier_invoice_number
         self.order_id.order_line.filtered(lambda l: l.product_qty == 0).unlink()
         self.order_id.button_confirm()
-        for pick in self.order_id.picking_ids:
-            wiz = self.env['stock.immediate.transfer'].create({'pick_ids': [(4, pick.id)]})
-            wiz.process()
+        picking_id = self.order_id.picking_ids
+        for ml in picking_id.move_line_ids:
+            ml.qty_done = ml.product_qty
 
-        invoice = self.env['account.move'].create({'type': 'in_invoice',
-                                                   'company_id': self.order_id.company_id.id,
-                                                   'partner_id': self.order_id.partner_id.id,
-                                                   'invoice_origin': self.order_id.name})
-        invoice.purchase_id = self.order_id
-        invoice._onchange_purchase_auto_complete()
+        picking_id.with_context(
+            skip_immediate=True,
+            skip_backorder=True,
+            picking_ids_not_to_backorder=picking_id.ids).button_validate()
 
-        po_lines = self.order_id.order_line
-        new_lines = self.env['account.move.line']
-        for line in po_lines.filtered(lambda l: not l.display_type):
-            new_line = new_lines.new(line._prepare_account_move_line(invoice))
-            new_line.account_id = new_line._get_computed_account()
-            new_line._onchange_price_subtotal()
-            new_lines += new_line
-        new_lines._onchange_mark_recompute_taxes()
-
-        mv_lines = []
-        for mv_line in new_lines:
-            mv_lines.append(mv_line.with_context(include_business_fields=True).copy_data()[0])
-
-        mv_lines = self.env['account.move']._move_autocomplete_invoice_lines_create(mv_lines)
-        invoice.invoice_line_ids = [(0, 0, mv_dict) for mv_dict in mv_lines]
+        invoice = self.order_id.action_create_invoice()['res_id']
+        invoice = self.env['account.move'].browse(invoice)
+        invoice.invoice_date = invoice.date        
         invoice.ref = self.supplier_invoice_number
         invoice.action_post()
         # if invoice.is_inbound():

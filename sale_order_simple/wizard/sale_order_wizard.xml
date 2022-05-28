@@ -42,7 +42,7 @@
                         <group>
                         </group>
                     </group>
-                    <field name="lines_json1" invisible="1"/>
+                    <field name="lines_json1" invisible="0"/>
                     <field name="lines_json2" widget="vue_one2many_field"/>
                     <group>
                         <field name="amount_sale_total" string="Total Vanzari"/>

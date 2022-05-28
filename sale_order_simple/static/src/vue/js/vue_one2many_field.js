@@ -164,6 +164,7 @@ odoo.define('sale_order_simple.widgets', function(require) {
             this.$el.find('.o_field_value').text(this.value);
             var lines_json1 = this.getParent().getChildren().find((child) => child.name === 'lines_json1');
             if (! _vue_app_proxy) {
+            	lines_json1.do_hide();
 				this.vue_app.config.globalProperties.ext_lines = lines_json1;
 				this.vue_app.mount(this.$el.find('#vue_root')[0])
             }
