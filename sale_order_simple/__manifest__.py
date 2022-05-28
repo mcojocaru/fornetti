@@ -4,7 +4,7 @@
 
 {
     'name': 'Sale Order Simple',
-    'version': '1.1',
+    'version': '14.0.1.0.0',
     'category': 'Sales',
     'description': """
 """,
