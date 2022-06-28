@@ -31,6 +31,7 @@ class StartWizard(models.Model):
         profile_id = self.env.user.profile_id
         if profile_id:
             res['profile_id'] = self.env.user.profile_id.id
+            res['flow_state'] = self.env.user.profile_id.flow_state
         return res
 
     def start_inventory(self):
