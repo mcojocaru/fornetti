@@ -20,7 +20,22 @@ class Profile(models.Model):
     amount_prev_day = fields.Float(related='company_id.amount_prev_day', readonly=False)
     current_cash_amount = fields.Float(related="user_id.current_cash_amount", readonly=False, tracking=True)
 
-    flow_state = fields.Selection(selection=[('inventory', 'Inventar'), ('input_output', 'Intrare si Vanzare'), ('input_only', 'Doar Intrare')], string="Flow State", default='inventory')
+    flow_type = fields.Selection(
+                selection=[
+                    ('inventory', 'Doar Inventar'), 
+                    ('inventory_input_output', 'Inventar - Intrare - Vanzare'), 
+                    ('input', 'Doar Intrare')
+                ], 
+                string="Flow Type", 
+                default='inventory_input_output')
+    flow_state = fields.Selection(strong='Current Flow State',
+                selection=[
+                    ('none', ''),
+                    ('inventory', 'Inventar'), 
+                    ('input', 'Intrare'), 
+                    ('output', 'Vanzare')
+                ], 
+                default='none')
 
     so_partner_id = fields.Many2one('res.partner', string='Customer', required=True)
     po_partner_id = fields.Many2one('res.partner', string='Supplier', required=True)
@@ -32,6 +47,24 @@ class Profile(models.Model):
     @api.onchange('company_id')
     def onchange_company_id(self):
         self.warehouse_id = self.env['stock.warehouse'].search([('company_id', '=', self.company_id.id)])
+
+    def do_next_flow_state(self):
+        if self.flow_type == 'inventory':
+            self.flow_state = 'inventory'
+
+        elif self.flow_type == 'input':
+            self.flow_state = 'input'
+
+        elif self.flow_type == 'inventory_input_output':
+            if self.flow_state in ('none', 'inventory'):
+                self.flow_state = 'input'
+
+            elif self.flow_state == 'input':
+                self.flow_state = 'output'
+
+            elif self.flow_state == 'output':
+                self.flow_state = 'inventory'
+
 
 class SaleProductList(models.Model):
     _name = 'sale_order_simple.sale_product_list'

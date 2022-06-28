@@ -17,6 +17,7 @@
         'wizard/purchase_order_wizard.xml',
         'views/product_list.xml',
         'views/profiles.xml',
+        'views/stock_warehouse_views.xml',        
         'views/res_config_settings_views.xml',
         'views/templates.xml',
         'data/data.xml',

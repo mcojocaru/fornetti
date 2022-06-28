@@ -47,6 +47,7 @@
                             <field name="so_partner_id" context="{'res_partner_search_mode': 'customer'}"/>
                             <field name="po_partner_id" context="{'res_partner_search_mode': 'supplier'}"/>
                             <field name="warehouse_id" domain="[('company_id', '=', company_id)]"/>
+                            <field name="flow_type"/>
                             <field name="flow_state"/>
                         </group>
                     </group>

@@ -107,6 +107,8 @@ class SaleOrderWizard(models.Model):
                  'warehouse_id': profile_id.warehouse_id.id
             })
             order_id.onchange_partner_id()
+            order_id.pricelist_id = profile_id.warehouse_id.sale_pricelist_id
+            order_id._onchange_pricelist_id()
 
             res['order_id'] = order_id.id
             res['partner_id'] = order_id.partner_id.id
@@ -283,7 +285,7 @@ class SaleOrderWizard(models.Model):
 
         has_fornetti_group = self.env.user.has_group('sale_order_simple.fornetti_group')
         if has_fornetti_group:
-            self.env.user.profile_id.flow_state = 'input_only'
+            self.env.user.profile_id.do_next_flow_state()
 
     def cancel(self):
         self.order_id.unlink()

@@ -211,10 +211,15 @@ class PurchaseOrderWizard(models.Model):
             picking_ids_not_to_backorder=picking_id.ids).button_validate()
 
         invoice = self.order_id.action_create_invoice()['res_id']
-        invoice = self.env['account.move'].browse(invoice)
-        invoice.invoice_date = invoice.date        
-        invoice.ref = self.supplier_invoice_number
-        invoice.action_post()
+        if invoice:
+            invoice = self.env['account.move'].browse(invoice)
+            invoice.invoice_date = invoice.date        
+            invoice.ref = self.supplier_invoice_number
+            invoice.action_post()
+
+        has_fornetti_group = self.env.user.has_group('sale_order_simple.fornetti_group')            
+        if has_fornetti_group:
+            self.env.user.profile_id.do_next_flow_state()
         # if invoice.is_inbound():
         #     domain = [('payment_type', '=', 'inbound')]
         # else:

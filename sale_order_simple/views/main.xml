@@ -7,7 +7,7 @@
           <menuitem id="menu_fornetti_1"
                     name="Start"
                     sequence="15"
-                    action="sale_order_simple.action_server_start_wizard"/>
+                    action="sale_order_simple.action_start_wizard"/>
 
           <menuitem id="menu_fornetti_admin"
                     name="Administrare"

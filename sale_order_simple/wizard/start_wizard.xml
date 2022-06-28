@@ -2,14 +2,14 @@
 <openerp>
     <data>
 
-        <record model="ir.actions.server" id="action_server_start_wizard">
+       <!--  <record model="ir.actions.server" id="action_server_start_wizard">
             <field name="name">Start</field>
             <field name="model_id" ref="sale_order_simple.model_sale_order_simple_start_wizard"/>
             <field name="binding_model_id" ref="sale_order_simple.model_sale_order_simple_start_wizard" />
             <field name="binding_view_types">form</field>
             <field name="state">code</field>
             <field name="code">action = model.create_wizard()</field>
-        </record>
+        </record> -->
 
         <record id="action_start_wizard" model="ir.actions.act_window">
             <field name="name">Start</field>
@@ -28,15 +28,18 @@
                     <div class="oe_button_box" style="text-align: center !important;" name="button_box">
                         <button string="Start Inventar" style="border: 1px solid;"
                                 class="oe_stat_button"
-                                icon="fa-random" name="start_inventory" type="object" attrs="{'invisible': [('flow_state', '!=', 'inventory')]}"/>
+                                icon="fa-random" name="start_inventory" type="object" 
+                                attrs="{'invisible': [('flow_state', 'not in', ('none', 'inventory'))]}"/>
+
                         <button string="Vanzare" style="border: 1px solid; margin-left: 10px;"
                                 class="oe_stat_button"
                                 icon="fa-cubes" name="start_sale" type="object"
-                                attrs="{'invisible': [('flow_state', 'in', ('inventory', 'input_only'))]}"/>
+                                attrs="{'invisible': [('flow_state', '!=', 'output')]}"/>
+
                         <button string="Intrare" style="border: 1px solid; margin-left: 10px;"
                                 class="oe_stat_button"
                                 icon="fa-th-list" name="start_purchase" type="object"
-                                attrs="{'invisible': [('flow_state', '=', 'inventory')]}"/>
+                                attrs="{'invisible': [('flow_state', '!=', 'input')]}"/>
                     </div>
                 </form>
             </field>
