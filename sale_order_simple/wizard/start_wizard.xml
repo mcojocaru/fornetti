@@ -24,22 +24,22 @@
             <field name="model">sale_order_simple.start_wizard</field>
             <field name="arch" type="xml">
                 <form string="Start" create="false" edit="false" delete="false">
-                    <field name="flow_state" invisible="1"/>
+                    <field name="flow_type" invisible="1"/>
                     <div class="oe_button_box" style="text-align: center !important;" name="button_box">
                         <button string="Start Inventar" style="border: 1px solid;"
                                 class="oe_stat_button"
                                 icon="fa-random" name="start_inventory" type="object" 
-                                attrs="{'invisible': [('flow_state', 'not in', ('none', 'inventory'))]}"/>
+                                attrs="{'invisible': [('flow_type', 'not in', ('inventory', 'inventory_input_output'))]}"/>
 
                         <button string="Vanzare" style="border: 1px solid; margin-left: 10px;"
                                 class="oe_stat_button"
                                 icon="fa-cubes" name="start_sale" type="object"
-                                attrs="{'invisible': [('flow_state', '!=', 'output')]}"/>
+                                attrs="{'invisible': [('flow_type', 'not in', ('output', 'inventory_input_output'))]}"/>
 
                         <button string="Intrare" style="border: 1px solid; margin-left: 10px;"
                                 class="oe_stat_button"
                                 icon="fa-th-list" name="start_purchase" type="object"
-                                attrs="{'invisible': [('flow_state', '!=', 'input')]}"/>
+                                attrs="{'invisible': [('flow_type', 'not in', ('input', 'inventory_input_output'))]}"/>
                     </div>
                 </form>
             </field>

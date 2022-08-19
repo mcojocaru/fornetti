@@ -285,7 +285,7 @@ class SaleOrderWizard(models.Model):
 
         has_fornetti_group = self.env.user.has_group('sale_order_simple.fornetti_group')
         if has_fornetti_group:
-            self.env.user.profile_id.do_next_flow_state()
+            self.env.user.profile_id.do_next_flow_state(action='output')
 
     def cancel(self):
         self.order_id.unlink()

@@ -16,11 +16,12 @@ class Inventory(models.Model):
     def action_validate(self):
         res = super(Inventory, self).action_validate()
         has_fornetti_group = self.env.user.has_group('sale_order_simple.fornetti_group')
+        if has_fornetti_group:
+            self.env.user.profile_id.do_next_flow_state(action='inventory')
+        
         if self.diff_lines and has_fornetti_group:
             self.send_email()
 
-        if has_fornetti_group:
-            self.env.user.profile_id.do_next_flow_state()
         return res
 
     def send_email(self):

@@ -219,19 +219,7 @@ class PurchaseOrderWizard(models.Model):
 
         has_fornetti_group = self.env.user.has_group('sale_order_simple.fornetti_group')            
         if has_fornetti_group:
-            self.env.user.profile_id.do_next_flow_state()
-        # if invoice.is_inbound():
-        #     domain = [('payment_type', '=', 'inbound')]
-        # else:
-        #     domain = [('payment_type', '=', 'outbound')]
-
-        # payment = self.env['account.payment'].with_context(active_id=invoice.id, active_model='account.move').create({
-        #     'journal_id': self.env['account.journal'].search(
-        #     [('company_id', '=', invoice[0].company_id.id), ('type', '=', 'cash')], limit=1).id,
-        #     'payment_method_id': self.env['account.payment.method'].search(domain, limit=1).id
-        # })
-        #
-        # payment.post()
+            self.env.user.profile_id.do_next_flow_state(action='input')
 
     def cancel(self):
         self.order_id.button_cancel()

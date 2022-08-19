@@ -28,14 +28,6 @@ class Profile(models.Model):
                 ], 
                 string="Flow Type", 
                 default='inventory_input_output')
-    flow_state = fields.Selection(strong='Current Flow State',
-                selection=[
-                    ('none', ''),
-                    ('inventory', 'Inventar'), 
-                    ('input', 'Intrare'), 
-                    ('output', 'Vanzare')
-                ], 
-                default='none')
 
     so_partner_id = fields.Many2one('res.partner', string='Customer', required=True)
     po_partner_id = fields.Many2one('res.partner', string='Supplier', required=True)
@@ -44,26 +36,44 @@ class Profile(models.Model):
     product_ids = fields.One2many(related='sale_product_list_id.product_ids', string="Products")
     expense_product_ids = fields.One2many(related='sale_product_list_id.expense_product_ids', string="Expeses")
 
+    purchase_blocked_today = fields.Boolean(default=False)
+    sale_blocked_today = fields.Boolean(default=False)
+    inventory_blocked_today = fields.Boolean(default=False)
+
+    purchase_count_today = fields.Integer(compute="_compute_count_today")
+    sale_count_today = fields.Integer(compute="_compute_count_today")
+    inventory_count_today = fields.Integer(compute="_compute_count_today")
+
+    def _compute_count_today(self):
+        for profile in self:
+            today = fields.Date.today()
+            profile.purchase_count_today = self.env['purchase.order'].search_count(
+                    [('state', 'in', ('purchase', 'done')), 
+                    ('date_approve', '>=', today),
+                    ('user_id', '=', profile.user_id.id)])
+            profile.sale_count_today = self.env['sale.order'].search_count(
+                    [('state', 'in', ('sale', 'done')), 
+                    ('date_order', '>=', today),
+                    ('user_id', '=', profile.user_id.id)])
+            profile.inventory_count_today = self.env['stock.inventory'].search_count(
+                    [('state', '=', 'done'), 
+                    ('create_date', '>=', today),
+                    ('location_ids', 'in', [profile.warehouse_id.lot_stock_id.id])])
+
+
     @api.onchange('company_id')
     def onchange_company_id(self):
         self.warehouse_id = self.env['stock.warehouse'].search([('company_id', '=', self.company_id.id)])
 
-    def do_next_flow_state(self):
-        if self.flow_type == 'inventory':
-            self.flow_state = 'inventory'
+    def do_next_flow_state(self, action=None):
+        if self.flow_type in ('input', 'inventory_input_output') and self.purchase_count_today >=2:
+            self.purchase_blocked_today = True
 
-        elif self.flow_type == 'input':
-            self.flow_state = 'input'
+        if self.flow_type == 'inventory_input_output' and self.sale_count_today >= 1:
+            self.sale_blocked_today = True
 
-        elif self.flow_type == 'inventory_input_output':
-            if self.flow_state in ('none', 'inventory'):
-                self.flow_state = 'input'
-
-            elif self.flow_state == 'input':
-                self.flow_state = 'output'
-
-            elif self.flow_state == 'output':
-                self.flow_state = 'inventory'
+        if self.flow_type in ('inventory', 'inventory_input_output') and self.inventory_count_today >= 1:
+            self.inventory_blocked_today = True
 
 
 class SaleProductList(models.Model):

@@ -48,7 +48,19 @@
                             <field name="po_partner_id" context="{'res_partner_search_mode': 'supplier'}"/>
                             <field name="warehouse_id" domain="[('company_id', '=', company_id)]"/>
                             <field name="flow_type"/>
-                            <field name="flow_state"/>
+                            <group>
+                                <group>
+                                   <field name="purchase_blocked_today" string="Intrari blocate"/>
+                                    <field name="sale_blocked_today" string="Iesiri blocate"/>
+                                    <field name="inventory_blocked_today" string="Ajustari Inventar blocate"/>
+                                </group>
+                                <group>
+                                    <field name="purchase_count_today" string="Numar Intrari efectuate astazi"/>
+                                    <field name="sale_count_today" string="Numar Iesiri efectuate astazi"/>
+                                    <field name="inventory_count_today" string="Numar Ajustari Inventar efectuate astazi"/>                                    
+                                </group>
+                            </group>
+
                         </group>
                     </group>
 
