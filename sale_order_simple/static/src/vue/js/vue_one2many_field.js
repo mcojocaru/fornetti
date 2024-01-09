@@ -3,6 +3,7 @@ odoo.define('sale_order_simple.widgets', function(require) {
     "use strict";
 
     var AbstractField = require('web.AbstractField');
+    // var  createApp  = require('vue.createApp');
     var core = require('web.core');
     var field_registry = require('web.field_registry');
     var field_utils = require('web.field_utils');
@@ -17,8 +18,8 @@ odoo.define('sale_order_simple.widgets', function(require) {
        _vue_app_proxy = proxy;
     };
 
-    function init_vue_app() {
-		const vue_app = Vue.createApp({
+    const init_vue_app = async function () {
+		const vue_app = await Vue.createApp({
 			template: `
 				<table className="table table-striped table-bordered table-sm" ref="">
 				  <thead className="thead-light">
@@ -142,13 +143,14 @@ odoo.define('sale_order_simple.widgets', function(require) {
 		});
 		return vue_app;
 	};
+	const vue_app_= init_vue_app();
 
     var VueFieldChar = AbstractField.extend({
         template: "VueTmpl",
         init: function(parent, name, record, options) {
             this._super.apply(this, arguments);
-            this.vue_app = init_vue_app();
-            _vue_app_proxy = null;
+            _vue_app_proxy = null;            
+            this.vue_app = vue_app_;
         },
 
         reset: function(record, event) {
@@ -165,8 +167,11 @@ odoo.define('sale_order_simple.widgets', function(require) {
             var lines_json1 = this.getParent().getChildren().find((child) => child.name === 'lines_json1');
             if (! _vue_app_proxy) {
             	lines_json1.do_hide();
-				this.vue_app.config.globalProperties.ext_lines = lines_json1;
-				this.vue_app.mount(this.$el.find('#vue_root')[0])
+            	var self = this;
+				return this.vue_app.then(function(res) {
+					res.config.globalProperties.ext_lines = lines_json1;
+					res.mount(self.$el.find('#vue_root')[0])
+				});
             }
         },
 
