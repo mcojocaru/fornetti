@@ -97,7 +97,7 @@ odoo.define('sale_order_simple.purchase_widgets', function (require) {
 			watch: {
 				qty: function (newQty, oldQty) {
 				  if (newQty !== "") {
-					  this.line.current_qty = parseInt(newQty);
+					  this.line.current_qty = parseFloat(newQty);
 				  } else {
 					  this.line.current_qty = 0;
 				  }
